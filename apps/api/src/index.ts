@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import chatRouter from "./routes/chat.js";
+import portfolioRouter from "./routes/portfolio.js";
 import { initWallet } from "./services/wallet.js";
 
 dotenv.config();
@@ -20,6 +21,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/chat", chatRouter);
+app.use("/portfolio", portfolioRouter);
 
 app.listen(PORT, () => {
   console.log(`API server running on http://localhost:${PORT}`);
