@@ -65,6 +65,31 @@ interface DexScreenerResponse {
   pairs: TokenPair[] | null;
 }
 
+async function getPairInfo(chainId: string, pairAddress: string): Promise<TokenPair | null> {
+  try {
+    const response = await fetch(
+      `${DEXSCREENER_API}/dex/pairs/${chainId}/${pairAddress}`
+    );
+
+    if (!response.ok) {
+      console.error(`DexScreener pair API error: ${response.status}`);
+      return null;
+    }
+
+    const data: DexScreenerResponse = await response.json();
+    console.log("[DexScreener] Pair endpoint response:", JSON.stringify(data, null, 2));
+
+    if (!data.pairs || data.pairs.length === 0) {
+      return null;
+    }
+
+    return data.pairs[0];
+  } catch (error) {
+    console.error("Error fetching pair info from DexScreener:", error);
+    return null;
+  }
+}
+
 export async function getTokenInfo(tokenAddress: string): Promise<TokenInfo | null> {
   try {
     const response = await fetch(
@@ -78,12 +103,17 @@ export async function getTokenInfo(tokenAddress: string): Promise<TokenInfo | nu
 
     const data: DexScreenerResponse = await response.json();
 
+    console.log("[DexScreener] Raw API response:", JSON.stringify(data, null, 2));
+
     if (!data.pairs || data.pairs.length === 0) {
+      console.log("[DexScreener] No pairs found");
       return null;
     }
 
     // Get the pair with highest liquidity on Solana
     const solanaPairs = data.pairs.filter((p) => p.chainId === "solana");
+    console.log("[DexScreener] Solana pairs found:", solanaPairs.length);
+
     if (solanaPairs.length === 0) {
       return null;
     }
@@ -94,12 +124,31 @@ export async function getTokenInfo(tokenAddress: string): Promise<TokenInfo | nu
       return currentLiq > bestLiq ? current : best;
     });
 
+    console.log("[DexScreener] Best pair liquidity object:", bestPair.liquidity);
+    console.log("[DexScreener] Best pair full data:", JSON.stringify(bestPair, null, 2));
+
+    // If liquidity is missing, fetch the pair directly for complete data
+    // For pumpfun tokens (bonding curve), use marketCap as liquidity proxy
+    let liquidity = bestPair.liquidity?.usd || 0;
+    if (!bestPair.liquidity) {
+      console.log("[DexScreener] Liquidity missing, fetching pair directly...");
+      const pairData = await getPairInfo("solana", bestPair.pairAddress);
+      if (pairData?.liquidity?.usd) {
+        liquidity = pairData.liquidity.usd;
+        console.log("[DexScreener] Got liquidity from pair endpoint:", liquidity);
+      } else if (bestPair.marketCap) {
+        // Fallback to marketCap when liquidity not available (pumpfun bonding curve, etc)
+        liquidity = bestPair.marketCap;
+        console.log(`[DexScreener] ${bestPair.dexId} - using marketCap as liquidity proxy:`, liquidity);
+      }
+    }
+
     return {
       address: bestPair.baseToken.address,
       name: bestPair.baseToken.name,
       symbol: bestPair.baseToken.symbol,
       priceUsd: bestPair.priceUsd,
-      liquidity: bestPair.liquidity?.usd || 0,
+      liquidity,
       fdv: bestPair.fdv || null,
       marketCap: bestPair.marketCap || null,
       volume24h: bestPair.volume.h24,

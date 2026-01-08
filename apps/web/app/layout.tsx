@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import PixelBackground from "@/components/PixelBackground";
 import AsciiFooter from "@/components/AsciiFooter";
@@ -14,12 +15,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen pb-10">
-        <PixelBackground />
-        {children}
-        <AsciiFooter />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className="min-h-screen pb-10">
+          <PixelBackground />
+          {children}
+          <AsciiFooter />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

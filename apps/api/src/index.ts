@@ -5,12 +5,24 @@ import chatRouter from "./routes/chat.js";
 import portfolioRouter from "./routes/portfolio.js";
 import { initWallet } from "./services/wallet.js";
 import { initDb } from "./db/index.js";
+import { clerkMiddleware, extractUserIdentifier } from "./middleware/auth.js";
+import { resetRateLimit } from "./db/rateLimits.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// CORS configuration - allow credentials for Clerk auth
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true,
+}));
 app.use(express.json());
+
+// Clerk middleware - adds auth info to all requests
+app.use(clerkMiddleware());
+
+// Extract user identifier for rate limiting
+app.use(extractUserIdentifier);
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
@@ -18,6 +30,19 @@ app.get("/health", (req, res) => {
 
 app.use("/chat", chatRouter);
 app.use("/portfolio", portfolioRouter);
+
+// Dev-only endpoint to reset rate limits
+if (process.env.NODE_ENV !== "production") {
+  app.post("/dev/reset-rate-limit", async (req, res) => {
+    const { userIdentifier } = req;
+    if (!userIdentifier) {
+      return res.status(400).json({ error: "No user identifier" });
+    }
+    await resetRateLimit(userIdentifier);
+    console.log(`[DEV] Rate limit reset for: ${userIdentifier}`);
+    res.json({ success: true, identifier: userIdentifier });
+  });
+}
 
 async function start() {
   await initDb();

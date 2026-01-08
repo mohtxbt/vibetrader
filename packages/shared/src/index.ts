@@ -8,15 +8,37 @@ export interface ChatRequest {
   conversationId?: string;
 }
 
+export interface RateLimitInfo {
+  limit: number;
+  remaining: number;
+  used: number;
+  resetsAt: string;
+}
+
+export interface TokenPreview {
+  address: string;
+  name: string;
+  symbol: string;
+  priceUsd: string;
+  liquidity: number;
+  marketCap: number | null;
+  volume24h: number;
+  priceChange24h: number;
+  holders?: number;
+  age: string;
+}
+
 export interface ChatResponse {
   message: string;
   conversationId: string;
+  tokenPreview?: TokenPreview;
   decision?: {
     action: "buy" | "pass";
     token?: string;
     amount?: number;
     reasoning: string;
   };
+  rateLimit?: RateLimitInfo;
 }
 
 export interface Purchase {
