@@ -213,12 +213,12 @@ export function formatTokenInfo(token: TokenInfo): string {
   const lines = [
     `=== ${token.name} (${token.symbol}) ===`,
     `Address: ${token.address}`,
-    `Price: $${token.priceUsd}`,
+    `Price: $${formatPrice(token.priceUsd)}`,
     token.isScam ? "⚠️ FLAGGED AS SCAM ⚠️" : null,
     "",
     "-- Price Changes --",
     `5m: ${formatChange(token.priceChange5m)} | 1h: ${formatChange(token.priceChange1h)} | 4h: ${formatChange(token.priceChange4h)} | 12h: ${formatChange(token.priceChange12h)} | 24h: ${formatChange(token.priceChange24h)}`,
-    token.high24h && token.low24h ? `24h Range: $${token.low24h.toPrecision(4)} - $${token.high24h.toPrecision(4)}` : null,
+    token.high24h && token.low24h ? `24h Range: $${formatPrice(token.low24h.toString())} - $${formatPrice(token.high24h.toString())}` : null,
     "",
     "-- Market Stats --",
     `Liquidity: $${formatNumber(token.liquidity)}`,
@@ -253,6 +253,36 @@ export function formatTokenInfo(token: TokenInfo): string {
   ];
 
   return lines.filter((line) => line !== null).join("\n");
+}
+
+function formatPrice(priceStr: string): string {
+  const num = parseFloat(priceStr);
+  if (isNaN(num) || num === 0) return "0";
+
+  // For prices >= $1, show 2 decimal places
+  if (num >= 1) {
+    return num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // For prices >= $0.01, show 4 decimal places
+  if (num >= 0.01) {
+    return num.toFixed(4);
+  }
+
+  // For very small prices, use subscript notation: 0.0{5}4187 means 5 zeros then 4187
+  const str = num.toFixed(20);
+  const match = str.match(/^0\.(0*)([1-9]\d*)/);
+  if (match) {
+    const zeros = match[1].length;
+    const significantDigits = match[2].slice(0, 4); // Show 4 significant digits
+    if (zeros >= 3) {
+      return `0.0{${zeros}}${significantDigits}`;
+    }
+    // For 1-2 zeros, just show the number
+    return num.toFixed(zeros + 4);
+  }
+
+  return num.toPrecision(4);
 }
 
 function formatNumber(num: number): string {
