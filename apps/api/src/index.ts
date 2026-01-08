@@ -1,12 +1,10 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import chatRouter from "./routes/chat.js";
 import portfolioRouter from "./routes/portfolio.js";
 import { initWallet } from "./services/wallet.js";
 import { initDb } from "./db/index.js";
-
-dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
