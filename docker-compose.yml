@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: vibe-trader-db
+    environment:
+      POSTGRES_USER: vibetrader
+      POSTGRES_PASSWORD: vibetrader
+      POSTGRES_DB: vibetrader
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
