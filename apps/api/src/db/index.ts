@@ -1,81 +1,85 @@
-import Database from "better-sqlite3";
+import pg from "pg";
 import type { Purchase } from "@vibe-trader/shared";
 import { randomUUID } from "crypto";
 
-const db = new Database("vibe-trader.db");
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 
-// Initialize tables
-db.exec(`
-  CREATE TABLE IF NOT EXISTS purchases (
-    id TEXT PRIMARY KEY,
-    token_address TEXT NOT NULL,
-    token_symbol TEXT,
-    amount_sol REAL NOT NULL,
-    amount_token REAL NOT NULL,
-    price_per_token REAL NOT NULL,
-    reasoning TEXT NOT NULL,
-    tx_signature TEXT NOT NULL,
-    timestamp TEXT NOT NULL
-  )
-`);
-
-export function addPurchase(purchase: Omit<Purchase, "id">): Purchase {
-  const id = randomUUID();
-  const stmt = db.prepare(`
-    INSERT INTO purchases (id, token_address, token_symbol, amount_sol, amount_token, price_per_token, reasoning, tx_signature, timestamp)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+export async function initDb(): Promise<void> {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS purchases (
+      id TEXT PRIMARY KEY,
+      token_address TEXT NOT NULL,
+      token_symbol TEXT,
+      amount_sol DOUBLE PRECISION NOT NULL,
+      amount_token DOUBLE PRECISION NOT NULL,
+      price_per_token DOUBLE PRECISION NOT NULL,
+      reasoning TEXT NOT NULL,
+      tx_signature TEXT NOT NULL,
+      timestamp TIMESTAMPTZ NOT NULL
+    )
   `);
+}
 
-  stmt.run(
-    id,
-    purchase.tokenAddress,
-    purchase.tokenSymbol || "UNKNOWN",
-    purchase.amountSol,
-    purchase.amountToken,
-    purchase.pricePerToken,
-    purchase.reasoning,
-    purchase.txSignature,
-    purchase.timestamp
+export async function addPurchase(purchase: Omit<Purchase, "id">): Promise<Purchase> {
+  const id = randomUUID();
+
+  await pool.query(
+    `INSERT INTO purchases (id, token_address, token_symbol, amount_sol, amount_token, price_per_token, reasoning, tx_signature, timestamp)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    [
+      id,
+      purchase.tokenAddress,
+      purchase.tokenSymbol || "UNKNOWN",
+      purchase.amountSol,
+      purchase.amountToken,
+      purchase.pricePerToken,
+      purchase.reasoning,
+      purchase.txSignature,
+      purchase.timestamp,
+    ]
   );
 
   return { id, ...purchase };
 }
 
-export function getPurchases(): Purchase[] {
-  const stmt = db.prepare(`
+export async function getPurchases(): Promise<Purchase[]> {
+  const result = await pool.query(`
     SELECT
       id,
-      token_address as tokenAddress,
-      token_symbol as tokenSymbol,
-      amount_sol as amountSol,
-      amount_token as amountToken,
-      price_per_token as pricePerToken,
+      token_address as "tokenAddress",
+      token_symbol as "tokenSymbol",
+      amount_sol as "amountSol",
+      amount_token as "amountToken",
+      price_per_token as "pricePerToken",
       reasoning,
-      tx_signature as txSignature,
+      tx_signature as "txSignature",
       timestamp
     FROM purchases
     ORDER BY timestamp DESC
   `);
 
-  return stmt.all() as Purchase[];
+  return result.rows;
 }
 
-export function getPurchasesByToken(tokenAddress: string): Purchase[] {
-  const stmt = db.prepare(`
-    SELECT
+export async function getPurchasesByToken(tokenAddress: string): Promise<Purchase[]> {
+  const result = await pool.query(
+    `SELECT
       id,
-      token_address as tokenAddress,
-      token_symbol as tokenSymbol,
-      amount_sol as amountSol,
-      amount_token as amountToken,
-      price_per_token as pricePerToken,
+      token_address as "tokenAddress",
+      token_symbol as "tokenSymbol",
+      amount_sol as "amountSol",
+      amount_token as "amountToken",
+      price_per_token as "pricePerToken",
       reasoning,
-      tx_signature as txSignature,
+      tx_signature as "txSignature",
       timestamp
     FROM purchases
-    WHERE token_address = ?
-    ORDER BY timestamp DESC
-  `);
+    WHERE token_address = $1
+    ORDER BY timestamp DESC`,
+    [tokenAddress]
+  );
 
-  return stmt.all(tokenAddress) as Purchase[];
+  return result.rows;
 }

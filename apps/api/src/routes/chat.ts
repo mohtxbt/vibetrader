@@ -30,7 +30,7 @@ router.post("/", async (req, res) => {
         );
 
         // Record the purchase
-        const purchase = addPurchase({
+        await addPurchase({
           tokenAddress: swapResult.tokenAddress,
           tokenSymbol: "UNKNOWN", // Could fetch from token metadata
           amountSol: swapResult.inputAmount,

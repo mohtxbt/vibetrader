@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import chatRouter from "./routes/chat.js";
 import portfolioRouter from "./routes/portfolio.js";
 import { initWallet } from "./services/wallet.js";
+import { initDb } from "./db/index.js";
 
 dotenv.config();
 
@@ -13,9 +14,6 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Initialize wallet on startup
-initWallet();
-
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
@@ -23,6 +21,12 @@ app.get("/health", (req, res) => {
 app.use("/chat", chatRouter);
 app.use("/portfolio", portfolioRouter);
 
-app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`);
-});
+async function start() {
+  await initDb();
+  initWallet();
+  app.listen(PORT, () => {
+    console.log(`API server running on http://localhost:${PORT}`);
+  });
+}
+
+start();

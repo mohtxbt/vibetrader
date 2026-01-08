@@ -8,7 +8,7 @@ const router = Router();
 router.get("/", async (req, res) => {
   try {
     const balance = await getBalance();
-    const purchases = getPurchases();
+    const purchases = await getPurchases();
 
     const response: PortfolioResponse = {
       balance,
