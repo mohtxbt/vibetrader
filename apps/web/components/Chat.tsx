@@ -58,7 +58,7 @@ export default function Chat() {
       console.error("Failed to send message:", error);
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "Sorry, something went wrong. Try again." },
+        { role: "assistant", content: "ERROR: Connection failed. Retry." },
       ]);
     } finally {
       setLoading(false);
@@ -66,12 +66,13 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-[600px] max-w-2xl mx-auto">
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+    <div className="flex flex-col h-[600px] max-w-2xl mx-auto border border-cyber-muted bg-black/80 backdrop-blur-sm">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-sm">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 mt-8">
-            <p className="text-lg">Pitch me a token!</p>
-            <p className="text-sm mt-2">Tell me why I should buy it.</p>
+          <div className="text-center mt-12 space-y-4">
+            <div className="text-2xl text-cyber-light">{">"}_</div>
+            <p className="font-pixel text-xs text-white glow-white">PITCH ME A TOKEN</p>
+            <p className="text-cyber-light text-xs">// tell me why I should buy</p>
           </div>
         )}
         {messages.map((msg, i) => (
@@ -80,25 +81,32 @@ export default function Chat() {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+              className={`max-w-[80%] px-4 py-3 ${
                 msg.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-800 text-gray-100"
+                  ? "bg-cyber-gray border border-cyber-muted text-white"
+                  : "bg-transparent border border-cyber-muted text-cyber-light"
               }`}
             >
-              <p className="whitespace-pre-wrap">{msg.content}</p>
+              <span className="text-cyber-muted mr-2">{msg.role === "user" ? ">" : "$"}</span>
+              <span className="whitespace-pre-wrap leading-relaxed">{msg.content}</span>
               {msg.decision && (
                 <div
-                  className={`mt-2 pt-2 border-t ${
+                  className={`mt-3 pt-3 border-t border-cyber-muted flex items-center gap-2 ${
                     msg.decision.action === "buy"
-                      ? "border-green-500 text-green-400"
-                      : "border-red-500 text-red-400"
+                      ? "text-cyber-green glow-green"
+                      : "text-cyber-light"
                   }`}
                 >
                   {msg.decision.action === "buy" ? (
-                    <span>Bought {msg.decision.amount?.toFixed(4)} tokens</span>
+                    <>
+                      <span>[OK]</span>
+                      <span>bought {msg.decision.amount?.toFixed(4)} tokens</span>
+                    </>
                   ) : (
-                    <span>Passed on this one</span>
+                    <>
+                      <span>[PASS]</span>
+                      <span>rejected</span>
+                    </>
                   )}
                 </div>
               )}
@@ -107,30 +115,30 @@ export default function Chat() {
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-800 rounded-2xl px-4 py-2 text-gray-400">
-              Thinking...
+            <div className="border border-cyber-muted px-4 py-3 text-cyber-light">
+              <span className="animate-pulse">processing...</span>
             </div>
           </div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="p-4 border-t border-gray-800">
-        <div className="flex gap-2">
+      <form onSubmit={sendMessage} className="p-4 border-t border-cyber-muted">
+        <div className="flex gap-3">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Pitch a token..."
-            className="flex-1 bg-gray-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="enter pitch..."
+            className="flex-1 bg-black text-white font-mono px-4 py-3 border border-cyber-muted focus:outline-none focus:border-white transition-colors placeholder:text-cyber-muted"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="bg-white text-black px-6 py-3 font-mono hover:bg-cyber-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Send
+            SEND
           </button>
         </div>
       </form>

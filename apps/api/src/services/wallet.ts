@@ -16,15 +16,23 @@ let keypair: Keypair | null = null;
 export function initWallet(): Keypair {
   if (keypair) return keypair;
 
-  const privateKey = process.env.SOLANA_PRIVATE_KEY;
-  if (!privateKey) {
-    console.log("No SOLANA_PRIVATE_KEY found, generating new wallet...");
+  const privateKey = process.env.SOLANA_PRIVATE_KEY?.trim();
+  if (!privateKey || privateKey === "your-base58-private-key") {
+    console.log("No valid SOLANA_PRIVATE_KEY found, generating new wallet...");
     keypair = Keypair.generate();
     console.log("Generated wallet address:", keypair.publicKey.toBase58());
     console.log("Private key (save this!):", bs58.encode(keypair.secretKey));
   } else {
-    keypair = Keypair.fromSecretKey(bs58.decode(privateKey));
-    console.log("Loaded wallet:", keypair.publicKey.toBase58());
+    try {
+      keypair = Keypair.fromSecretKey(bs58.decode(privateKey));
+      console.log("Loaded wallet:", keypair.publicKey.toBase58());
+    } catch (err) {
+      console.error("Invalid SOLANA_PRIVATE_KEY format. Must be base58-encoded.");
+      console.log("Generating new wallet instead...");
+      keypair = Keypair.generate();
+      console.log("Generated wallet address:", keypair.publicKey.toBase58());
+      console.log("Private key (save this!):", bs58.encode(keypair.secretKey));
+    }
   }
 
   return keypair;

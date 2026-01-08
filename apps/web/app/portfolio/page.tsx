@@ -48,74 +48,88 @@ export default function PortfolioPage() {
     `${addr.slice(0, 4)}...${addr.slice(-4)}`;
 
   return (
-    <main className="min-h-screen p-4">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen p-4 relative">
+      <div className="max-w-4xl mx-auto relative z-10 font-mono">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Portfolio</h1>
+          <h1 className="font-pixel text-xl md:text-2xl text-white glow-white">
+            Portfolio
+          </h1>
           <Link
             href="/"
-            className="text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-cyber-light hover:text-white transition-colors text-sm"
           >
-            Back to Chat
+            [back]
           </Link>
         </div>
 
-        {loading && <p className="text-gray-400">Loading...</p>}
+        {loading && (
+          <div className="text-cyber-light animate-pulse">
+            $ loading wallet...
+          </div>
+        )}
 
         {error && (
-          <div className="bg-red-900/50 border border-red-500 rounded-lg p-4 mb-6">
-            <p className="text-red-400">{error}</p>
+          <div className="border border-white p-4 mb-6">
+            <p className="text-white">ERROR: {error}</p>
           </div>
         )}
 
         {portfolio && (
           <>
-            <div className="bg-gray-800 rounded-xl p-6 mb-8">
-              <p className="text-gray-400 text-sm">Wallet Balance</p>
-              <p className="text-3xl font-bold">{portfolio.balance.toFixed(4)} SOL</p>
+            {/* Balance Card */}
+            <div className="border border-cyber-muted p-6 mb-8 bg-black/50">
+              <p className="text-cyber-muted text-xs mb-1">// wallet balance</p>
+              <p className="text-3xl font-bold text-white glow-white">
+                {portfolio.balance.toFixed(4)} <span className="text-xl text-cyber-light">SOL</span>
+              </p>
             </div>
 
-            <h2 className="text-xl font-semibold mb-4">Purchase History</h2>
+            <h2 className="font-pixel text-xs text-cyber-light mb-6">
+              {">"} PURCHASE_HISTORY
+            </h2>
 
             {portfolio.purchases.length === 0 ? (
-              <p className="text-gray-500">No purchases yet. Go pitch some tokens!</p>
+              <div className="text-center py-12 text-cyber-muted">
+                <div className="text-2xl mb-4">[ empty ]</div>
+                <p>no purchases yet</p>
+              </div>
             ) : (
               <div className="space-y-4">
                 {portfolio.purchases.map((purchase) => (
                   <div
                     key={purchase.id}
-                    className="bg-gray-800 rounded-xl p-4 space-y-3"
+                    className="bg-black/50 border border-cyber-muted p-5 space-y-4 hover:border-white transition-colors"
                   >
                     <div className="flex items-center justify-between">
-                      <div>
-                        <span className="font-semibold">{purchase.tokenSymbol}</span>
-                        <span className="text-gray-500 text-sm ml-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-white font-bold">{purchase.tokenSymbol}</span>
+                        <span className="text-cyber-muted text-xs">
                           {shortenAddress(purchase.tokenAddress)}
                         </span>
                       </div>
-                      <span className="text-gray-400 text-sm">
+                      <span className="text-cyber-muted text-xs">
                         {new Date(purchase.timestamp).toLocaleDateString()}
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-500">Spent</p>
-                        <p>{purchase.amountSol.toFixed(4)} SOL</p>
+                    <div className="grid grid-cols-3 gap-4 text-xs">
+                      <div className="border border-cyber-muted p-3">
+                        <p className="text-cyber-muted mb-1">spent</p>
+                        <p className="text-white">{purchase.amountSol.toFixed(4)} SOL</p>
                       </div>
-                      <div>
-                        <p className="text-gray-500">Received</p>
-                        <p>{purchase.amountToken.toLocaleString()} tokens</p>
+                      <div className="border border-cyber-muted p-3">
+                        <p className="text-cyber-muted mb-1">received</p>
+                        <p className="text-cyber-green glow-green">{purchase.amountToken.toLocaleString()}</p>
                       </div>
-                      <div>
-                        <p className="text-gray-500">Price</p>
-                        <p>{purchase.pricePerToken.toFixed(8)} SOL</p>
+                      <div className="border border-cyber-muted p-3">
+                        <p className="text-cyber-muted mb-1">price</p>
+                        <p className="text-white">{purchase.pricePerToken.toFixed(8)}</p>
                       </div>
                     </div>
 
-                    <div className="pt-2 border-t border-gray-700">
-                      <p className="text-gray-500 text-sm">Reasoning</p>
-                      <p className="text-sm text-gray-300 line-clamp-2">
+                    <div className="pt-3 border-t border-cyber-muted">
+                      <p className="text-cyber-muted text-xs mb-2">// reasoning</p>
+                      <p className="text-sm text-cyber-light leading-relaxed line-clamp-2">
                         {purchase.reasoning}
                       </p>
                     </div>
@@ -124,9 +138,9 @@ export default function PortfolioPage() {
                       href={`https://solscan.io/tx/${purchase.txSignature}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 text-sm hover:underline"
+                      className="inline-block text-cyber-light text-xs hover:text-white transition-colors"
                     >
-                      View transaction
+                      [view tx]
                     </a>
                   </div>
                 ))}

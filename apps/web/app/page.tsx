@@ -3,15 +3,17 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-4">
-      <div className="max-w-2xl mx-auto">
+    <main className="min-h-screen p-4 relative">
+      <div className="max-w-2xl mx-auto relative z-10">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Vibe Trader</h1>
+          <h1 className="font-pixel text-xl md:text-2xl text-white glow-white">
+            Vibe Trader
+          </h1>
           <Link
             href="/portfolio"
-            className="text-blue-400 hover:text-blue-300 transition-colors"
+            className="text-cyber-light hover:text-white transition-colors font-mono text-sm"
           >
-            Portfolio
+            [portfolio]
           </Link>
         </div>
         <Chat />
