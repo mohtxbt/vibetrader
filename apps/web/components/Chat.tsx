@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useAuth } from "@clerk/nextjs";
+import { useAuth, useUser } from "@clerk/nextjs";
+import Image from "next/image";
 import { saveConversation, StoredConversation } from "@/lib/conversationStorage";
 
 interface RateLimitInfo {
@@ -90,6 +91,7 @@ const USER_LIMIT = Number(process.env.NEXT_PUBLIC_USER_DAILY_LIMIT) || 20;
 
 export default function Chat({ initialConversation, conversationKey, onConversationUpdate }: ChatProps) {
   const { getToken, isSignedIn } = useAuth();
+  const { user } = useUser();
   const [messages, setMessages] = useState<Message[]>(initialConversation?.messages || []);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -325,10 +327,21 @@ export default function Chat({ initialConversation, conversationKey, onConversat
         {messages.map((msg, i) => (
           <div
             key={i}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            className={`flex items-end gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
+            {msg.role === "assistant" && (
+              <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-neon-cyan/50">
+                <Image
+                  src="/logo.png"
+                  alt="Vibe Trader"
+                  width={40}
+                  height={40}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
             <div
-              className={`max-w-[90%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 ${
+              className={`max-w-[80%] sm:max-w-[75%] px-3 sm:px-4 py-2 sm:py-3 ${
                 msg.role === "user"
                   ? "bg-neon-pink/20 border-2 border-neon-pink/50 text-white box-glow-pink"
                   : "bg-meme-gray/50 border-2 border-neon-cyan/30 text-meme-light"
@@ -410,6 +423,23 @@ export default function Chat({ initialConversation, conversationKey, onConversat
                 </div>
               )}
             </div>
+            {msg.role === "user" && (
+              <div className="shrink-0 w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden border-2 border-neon-pink/50">
+                {user?.imageUrl ? (
+                  <Image
+                    src={user.imageUrl}
+                    alt="You"
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-neon-pink/30 flex items-center justify-center text-neon-pink text-xs font-bold">
+                    ?
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
         <div ref={messagesEndRef} />
