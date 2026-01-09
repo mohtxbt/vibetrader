@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from "react";
 
+// Detect Safari for performance optimizations
+const isSafari = typeof navigator !== "undefined" && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
 export default function PixelBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -15,6 +18,10 @@ export default function PixelBackground() {
     let animationId: number;
     let stars: Star[] = [];
     let candlesticks: Candlestick[] = [];
+
+    // Reduce shadow blur on Safari for better performance
+    const maxShadowBlur = isSafari ? 4 : 10;
+    const smallShadowBlur = isSafari ? 2 : 4;
 
     // Star colors - mix of white and neon
     const starColors = ["#ffffff", "#ff00ff", "#00ffff", "#ffff00", "#b388ff"];
@@ -50,13 +57,13 @@ export default function PixelBackground() {
         ctx.globalAlpha = this.alpha;
         ctx.fillStyle = this.color;
 
-        // Draw star with glow effect
+        // Draw star with glow effect (reduced on Safari for performance)
         if (this.size > 1.5) {
           ctx.shadowColor = this.color;
-          ctx.shadowBlur = 10;
+          ctx.shadowBlur = maxShadowBlur;
         } else {
           ctx.shadowColor = this.color;
-          ctx.shadowBlur = 4;
+          ctx.shadowBlur = smallShadowBlur;
         }
 
         ctx.beginPath();
@@ -114,8 +121,9 @@ export default function PixelBackground() {
 
     const initStars = () => {
       stars = [];
-      // Dense star field for vibrant effect
-      const starCount = Math.floor((canvas.width * canvas.height) / 2500);
+      // Dense star field for vibrant effect (reduced on Safari for performance)
+      const density = isSafari ? 4000 : 2500;
+      const starCount = Math.floor((canvas.width * canvas.height) / density);
       for (let i = 0; i < starCount; i++) {
         stars.push(new Star(canvas.width, canvas.height));
       }

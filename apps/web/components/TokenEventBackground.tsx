@@ -3,6 +3,9 @@
 import { useEffect, useRef } from "react";
 import { useTokenEvents, TokenEvent } from "@/hooks/useTokenEvents";
 
+// Detect Safari for performance optimizations
+const isSafari = typeof navigator !== "undefined" && /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
 interface AnimatedToken {
   id: string;
   symbol: string;
@@ -88,17 +91,17 @@ export default function TokenEventBackground() {
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        // Glow effect
+        // Glow effect (reduced on Safari for performance)
         if (token.glowIntensity > 0) {
           ctx.shadowColor = color;
-          ctx.shadowBlur = token.glowIntensity;
+          ctx.shadowBlur = isSafari ? Math.min(token.glowIntensity, 8) : token.glowIntensity;
         }
 
         ctx.fillStyle = color;
         ctx.fillText(`$${token.symbol}`, token.x, token.y);
 
-        // Extra glow pass for bought tokens
-        if (token.type === "bought" && token.opacity > 0.3) {
+        // Extra glow pass for bought tokens (skip on Safari for performance)
+        if (!isSafari && token.type === "bought" && token.opacity > 0.3) {
           ctx.globalAlpha = token.opacity * 0.3;
           ctx.shadowBlur = token.glowIntensity * 2;
           ctx.fillText(`$${token.symbol}`, token.x, token.y);

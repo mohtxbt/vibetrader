@@ -177,3 +177,123 @@ body {
     -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* ========================================
+   Safari Compatibility Fixes
+   ======================================== */
+
+/* Backdrop filter webkit prefix */
+.backdrop-blur-sm {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* DVH fallback for older Safari - uses vh as fallback */
+.h-dvh-safe {
+  height: 100vh;
+  height: 100dvh;
+}
+
+/* Chat container height with Safari fallback */
+.chat-height {
+  height: calc(100vh - 8rem);
+  height: calc(100dvh - 8rem);
+}
+
+@media (min-width: 640px) {
+  .chat-height {
+    height: calc(100vh - 7rem);
+    height: calc(100dvh - 7rem);
+  }
+}
+
+/* Safari flexbox gap fallback using margins */
+@supports not (gap: 1rem) {
+  .gap-2 > * + * {
+    margin-left: 0.5rem;
+  }
+  .gap-3 > * + * {
+    margin-left: 0.75rem;
+  }
+  .gap-4 > * + * {
+    margin-left: 1rem;
+  }
+  .space-y-3 > * + * {
+    margin-top: 0.75rem;
+  }
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+}
+
+/* Safari animation fixes - use transform for better performance */
+@supports (-webkit-touch-callout: none) {
+  /* Safari-only styles */
+
+  /* Fix gradient animations by using opacity instead of background-position */
+  .neon-border {
+    position: relative;
+    border: 2px solid transparent;
+    background: linear-gradient(#1a0020, #1a0020) padding-box,
+                linear-gradient(135deg, #ff00ff, #00ffff, #ffff00, #ff00ff) border-box;
+    animation: none; /* Disable problematic animation on Safari */
+  }
+
+  /* Add pseudo-element for animated glow effect instead */
+  .neon-border::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    background: linear-gradient(135deg, #ff00ff, #00ffff, #ffff00, #ff00ff);
+    z-index: -1;
+    opacity: 0.5;
+    animation: safari-glow 3s ease-in-out infinite;
+    filter: blur(4px);
+  }
+
+  @keyframes safari-glow {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.6; }
+  }
+
+  /* Fix crazy-button animation */
+  .crazy-button {
+    background: linear-gradient(135deg, #ff00ff, #ff6600, #ffff00);
+    animation: none; /* Disable problematic gradient-x animation */
+  }
+
+  /* Use filter animation instead which Safari handles better */
+  .crazy-button:hover {
+    filter: brightness(1.2) saturate(1.2);
+  }
+
+  /* Reduce canvas shadow blur for better performance */
+  canvas {
+    will-change: transform;
+  }
+}
+
+/* Fix meme-card border-image (doesn't work on Safari) */
+.meme-card {
+  background: linear-gradient(135deg, rgba(26, 0, 32, 0.9) 0%, rgba(45, 31, 61, 0.9) 100%);
+  border: 2px solid #ff00ff;
+  position: relative;
+}
+
+/* Use pseudo-element for gradient border effect on Safari */
+.meme-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 2px;
+  background: linear-gradient(135deg, #ff00ff, #00ffff);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}

@@ -8,6 +8,38 @@ import AsciiFooter from "@/components/AsciiFooter";
 export const metadata: Metadata = {
   title: "Vibe Trader",
   description: "Pitch tokens to an AI agent",
+  metadataBase: new URL("https://vibetrader.tech"),
+  openGraph: {
+    title: "Vibe Trader",
+    description: "Pitch tokens to an AI agent",
+    url: "https://vibetrader.tech",
+    siteName: "Vibe Trader",
+    images: [
+      {
+        url: "/banner.png",
+        width: 1200,
+        height: 630,
+        alt: "Vibe Trader",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Vibe Trader",
+    description: "Pitch tokens to an AI agent",
+    images: ["/banner.png"],
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png" }],
+  },
+  manifest: "/site.webmanifest",
 };
 
 export default function RootLayout({

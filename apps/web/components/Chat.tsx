@@ -281,7 +281,7 @@ export default function Chat({ initialConversation, conversationKey, onConversat
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-7rem)] max-w-2xl mx-auto neon-border backdrop-blur-sm w-full">
+    <div className="flex flex-col chat-height max-w-2xl mx-auto neon-border backdrop-blur-sm w-full">
       {/* Rate Limit Display */}
       <div className="px-3 sm:px-4 py-2 border-b border-neon-pink/30 flex justify-between items-center text-xs font-mono bg-meme-dark/80">
         <span className={`${isSignedIn ? "text-neon-gold glow-yellow" : "text-meme-light"}`}>
