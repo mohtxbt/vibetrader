@@ -1,6 +1,5 @@
 import { VersionedTransaction, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { getWallet, getConnection } from "./wallet.js";
-import { withCache, CacheTTL, CachePrefix } from "./cache.js";
 
 const JUPITER_API = "https://quote-api.jup.ag/v6";
 const SOL_MINT = "So11111111111111111111111111111111111111112";
@@ -25,23 +24,20 @@ export async function getQuote(
   amountSol: number
 ): Promise<SwapQuote> {
   const amountLamports = Math.floor(amountSol * LAMPORTS_PER_SOL);
-  const cacheKey = `${CachePrefix.QUOTE}${SOL_MINT}:${outputMint}:${amountLamports}`;
 
-  return withCache(cacheKey, CacheTTL.QUOTE, async () => {
-    const params = new URLSearchParams({
-      inputMint: SOL_MINT,
-      outputMint,
-      amount: amountLamports.toString(),
-      slippageBps: "100", // 1% slippage
-    });
-
-    const response = await fetch(`${JUPITER_API}/quote?${params}`);
-    if (!response.ok) {
-      throw new Error(`Failed to get quote: ${response.statusText}`);
-    }
-
-    return response.json();
+  const params = new URLSearchParams({
+    inputMint: SOL_MINT,
+    outputMint,
+    amount: amountLamports.toString(),
+    slippageBps: "100", // 1% slippage
   });
+
+  const response = await fetch(`${JUPITER_API}/quote?${params}`);
+  if (!response.ok) {
+    throw new Error(`Failed to get quote: ${response.statusText}`);
+  }
+
+  return response.json();
 }
 
 export async function executeSwap(
