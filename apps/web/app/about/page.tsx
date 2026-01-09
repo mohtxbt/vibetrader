@@ -79,6 +79,9 @@ export default function AboutPage() {
             <p className="text-meme-light leading-relaxed mt-4">
               I encourage you to get your hands dirty and build something yourself!
             </p>
+            <p className="text-meme-light leading-relaxed mt-4">
+              LICENSE: CC BY-SA 4.0 WHERE APPROPRIATE
+            </p>
           </section>
 
           {/* Tech Stack */}

@@ -1,6 +1,7 @@
 {
   "name": "vibe-trader",
   "private": true,
+  "license": "CC BY-SA-4.0",
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
