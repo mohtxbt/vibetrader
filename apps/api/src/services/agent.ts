@@ -1,6 +1,8 @@
 import OpenAI from "openai";
 import type { ChatMessage } from "@vibe-trader/shared";
 import { getTokenInfo, searchTokens, formatTokenInfo } from "./codex";
+import { getBalance } from "./wallet";
+import { getPurchases } from "../db/index";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -61,6 +63,65 @@ If you're still thinking, debating, or need more info - DON'T include a DECISION
 Be hyped, be fun, use degen slang. Debate like a real degen. LFG.`;
 
 const conversations = new Map<string, ChatMessage[]>();
+
+interface PortfolioContext {
+  solBalance: number;
+  holdings: Array<{
+    symbol: string;
+    tokenAddress: string;
+    amountToken: number;
+    amountSolInvested: number;
+  }>;
+}
+
+async function getPortfolioContext(): Promise<PortfolioContext> {
+  const [solBalance, purchases] = await Promise.all([
+    getBalance(),
+    getPurchases(),
+  ]);
+
+  // Aggregate holdings by token
+  const holdingsMap = new Map<string, { symbol: string; amountToken: number; amountSolInvested: number }>();
+  for (const purchase of purchases) {
+    const existing = holdingsMap.get(purchase.tokenAddress);
+    if (existing) {
+      existing.amountToken += purchase.amountToken;
+      existing.amountSolInvested += purchase.amountSol;
+    } else {
+      holdingsMap.set(purchase.tokenAddress, {
+        symbol: purchase.tokenSymbol || "UNKNOWN",
+        amountToken: purchase.amountToken,
+        amountSolInvested: purchase.amountSol,
+      });
+    }
+  }
+
+  return {
+    solBalance,
+    holdings: Array.from(holdingsMap.entries()).map(([tokenAddress, data]) => ({
+      tokenAddress,
+      ...data,
+    })),
+  };
+}
+
+function formatPortfolioContext(portfolio: PortfolioContext): string {
+  const lines = [
+    "[Your Current State]",
+    `SOL Balance: ${portfolio.solBalance.toFixed(4)} SOL`,
+  ];
+
+  if (portfolio.holdings.length > 0) {
+    lines.push("", "Current Holdings:");
+    for (const holding of portfolio.holdings) {
+      lines.push(`- ${holding.symbol}: ${holding.amountToken.toLocaleString()} tokens (invested ${holding.amountSolInvested.toFixed(4)} SOL)`);
+    }
+  } else {
+    lines.push("Current Holdings: None (empty bag, ready to ape)");
+  }
+
+  return lines.join("\n");
+}
 
 export interface AgentResponse {
   message: string;
@@ -125,6 +186,15 @@ async function prepareChat(conversationId: string, userMessage: string) {
     conversations.set(conversationId, history);
   }
 
+  // Fetch portfolio context (SOL balance + holdings)
+  let portfolioContext = "";
+  try {
+    const portfolio = await getPortfolioContext();
+    portfolioContext = formatPortfolioContext(portfolio);
+  } catch (err) {
+    console.error("[Agent] Failed to fetch portfolio context:", err);
+  }
+
   // Try to fetch token info
   let tokenContext = "";
 
@@ -151,9 +221,12 @@ async function prepareChat(conversationId: string, userMessage: string) {
     }
   }
 
-  const enrichedMessage = tokenContext
-    ? `${userMessage}\n${tokenContext}`
-    : userMessage;
+  // Build enriched message with portfolio state and token data
+  let enrichedMessage = userMessage;
+  if (portfolioContext || tokenContext) {
+    const contextParts = [portfolioContext, tokenContext].filter(Boolean);
+    enrichedMessage = `${userMessage}\n\n${contextParts.join("\n\n")}`
+  }
 
   history.push({ role: "user", content: userMessage });
 

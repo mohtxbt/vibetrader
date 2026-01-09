@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import { createServer } from "http";
 import cors from "cors";
 import chatRouter from "./routes/chat.js";
 import portfolioRouter from "./routes/portfolio.js";
@@ -9,6 +10,7 @@ import { initDb } from "./db/index.js";
 import { clerkMiddleware, extractUserIdentifier } from "./middleware/auth.js";
 import { resetRateLimit } from "./db/rateLimits.js";
 import { startPriceUpdater } from "./services/priceUpdater.js";
+import { initWebSocketServer } from "./services/websocket.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,7 +53,11 @@ async function start() {
   await initDb();
   initWallet();
   startPriceUpdater();
-  app.listen(PORT, () => {
+
+  const server = createServer(app);
+  initWebSocketServer(server);
+
+  server.listen(PORT, () => {
     console.log(`API server running on http://localhost:${PORT}`);
   });
 }

@@ -6,6 +6,7 @@ import { executeSwap } from "../services/swap.js";
 import { addPurchase } from "../db/index.js";
 import { checkRateLimit } from "../middleware/rateLimit.js";
 import { getTokenInfo } from "../services/codex.js";
+import { eventBus } from "../services/eventBus.js";
 
 const router = Router();
 
@@ -128,11 +129,12 @@ router.post("/stream", checkRateLimit, async (req, res) => {
 
   try {
     // Check for token address and fetch preview
+    let tokenPreview: TokenPreview | undefined;
     const tokenAddress = extractTokenAddress(message);
     if (tokenAddress) {
       const tokenInfo = await getTokenInfo(tokenAddress);
       if (tokenInfo) {
-        const tokenPreview: TokenPreview = {
+        tokenPreview = {
           address: tokenInfo.address,
           name: tokenInfo.name,
           symbol: tokenInfo.symbol,
@@ -145,6 +147,18 @@ router.post("/stream", checkRateLimit, async (req, res) => {
           age: formatAge(tokenInfo.pairCreatedAt),
         };
         res.write(`data: ${JSON.stringify({ type: "token", tokenPreview, conversationId: convId })}\n\n`);
+
+        // Emit pitched event for WebSocket clients
+        eventBus.emitTokenEvent({
+          type: "pitched",
+          timestamp: Date.now(),
+          tokenAddress: tokenInfo.address,
+          symbol: tokenInfo.symbol,
+          name: tokenInfo.name,
+          priceUsd: tokenInfo.priceUsd,
+          marketCap: tokenInfo.marketCap,
+          liquidity: tokenInfo.liquidity,
+        });
       }
     }
 
@@ -168,7 +182,7 @@ router.post("/stream", checkRateLimit, async (req, res) => {
 
         await addPurchase({
           tokenAddress: swapResult.tokenAddress,
-          tokenSymbol: "UNKNOWN",
+          tokenSymbol: tokenPreview?.symbol || "UNKNOWN",
           amountSol: swapResult.inputAmount,
           amountToken: swapResult.outputAmount,
           pricePerToken: swapResult.inputAmount / swapResult.outputAmount,
@@ -177,6 +191,21 @@ router.post("/stream", checkRateLimit, async (req, res) => {
           timestamp: new Date().toISOString(),
           userId: req.userIdentifier,
           userType: req.identifierType === "user" ? "user" : "ip",
+        });
+
+        // Emit bought event for WebSocket clients
+        eventBus.emitTokenEvent({
+          type: "bought",
+          timestamp: Date.now(),
+          tokenAddress: swapResult.tokenAddress,
+          symbol: tokenPreview?.symbol || "UNKNOWN",
+          name: tokenPreview?.name || "Unknown Token",
+          priceUsd: tokenPreview?.priceUsd || "0",
+          marketCap: tokenPreview?.marketCap || null,
+          liquidity: tokenPreview?.liquidity || 0,
+          amountSol: swapResult.inputAmount,
+          amountToken: swapResult.outputAmount,
+          txSignature: swapResult.signature,
         });
 
         res.write(`data: ${JSON.stringify({
@@ -193,6 +222,21 @@ router.post("/stream", checkRateLimit, async (req, res) => {
         res.write(`data: ${JSON.stringify({ type: "chunk", content: "\n\n(Note: I wanted to buy but the swap failed. Make sure the wallet has SOL!)" })}\n\n`);
       }
     } else if (decision?.action === "pass") {
+      // Emit rejected event for WebSocket clients
+      if (tokenAddress && tokenPreview) {
+        eventBus.emitTokenEvent({
+          type: "rejected",
+          timestamp: Date.now(),
+          tokenAddress: tokenAddress,
+          symbol: tokenPreview.symbol,
+          name: tokenPreview.name,
+          priceUsd: tokenPreview.priceUsd,
+          marketCap: tokenPreview.marketCap,
+          liquidity: tokenPreview.liquidity,
+          reason: decision.reasoning.slice(0, 200),
+        });
+      }
+
       res.write(`data: ${JSON.stringify({
         type: "decision",
         decision: { action: "pass", reasoning: decision.reasoning },
