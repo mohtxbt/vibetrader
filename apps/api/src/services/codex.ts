@@ -3,6 +3,9 @@ import { withCache, CacheTTL, CachePrefix } from "./cache.js";
 
 const SOLANA_NETWORK_ID = 1399811149;
 
+// BRO WTF?
+console.log("CODEX_API_KEY", process.env.CODEX_API_KEY);
+
 const codex = new Codex(process.env.CODEX_API_KEY!);
 
 export interface TokenInfo {
