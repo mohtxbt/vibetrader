@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { saveConversation, StoredConversation } from "@/lib/conversationStorage";
 
@@ -48,13 +48,34 @@ function formatNumber(num: number): string {
   return num.toFixed(2);
 }
 
-function formatMarkdown(text: string): React.ReactNode {
+function formatInlineMarkdown(text: string, keyPrefix: string): React.ReactNode {
   const parts = text.split(/(\*\*.*?\*\*)/g);
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i} className="text-neon-yellow">{part.slice(2, -2)}</strong>;
+      return <strong key={`${keyPrefix}-${i}`} className="text-neon-yellow">{part.slice(2, -2)}</strong>;
     }
     return part;
+  });
+}
+
+function formatMarkdown(text: string): React.ReactNode {
+  const lines = text.split("\n");
+  return lines.map((line, i) => {
+    const isLast = i === lines.length - 1;
+
+    // Handle headers
+    if (line.startsWith("### ")) {
+      return <React.Fragment key={i}><span className="text-lg font-bold text-neon-pink">{formatInlineMarkdown(line.slice(4), `h3-${i}`)}</span>{!isLast && "\n"}</React.Fragment>;
+    }
+    if (line.startsWith("## ")) {
+      return <React.Fragment key={i}><span className="text-xl font-bold text-neon-pink">{formatInlineMarkdown(line.slice(3), `h2-${i}`)}</span>{!isLast && "\n"}</React.Fragment>;
+    }
+    if (line.startsWith("# ")) {
+      return <React.Fragment key={i}><span className="text-2xl font-bold text-neon-pink">{formatInlineMarkdown(line.slice(2), `h1-${i}`)}</span>{!isLast && "\n"}</React.Fragment>;
+    }
+
+    // Regular line with inline formatting
+    return <React.Fragment key={i}>{formatInlineMarkdown(line, `line-${i}`)}{!isLast && "\n"}</React.Fragment>;
   });
 }
 
