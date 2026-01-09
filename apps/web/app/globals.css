@@ -11,13 +11,12 @@ body {
   min-height: 100vh;
 }
 
-/* Chaos background pattern */
+/* Chaos background pattern - transparent to show stars */
 .chaos-bg {
   background:
     radial-gradient(ellipse at 20% 20%, rgba(255, 0, 255, 0.15) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 80%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 0, 0.1) 0%, transparent 50%),
-    linear-gradient(135deg, #0a0012 0%, #1a0030 50%, #0a0020 100%);
+    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 0, 0.1) 0%, transparent 50%);
 }
 
 /* Animated gradient border */

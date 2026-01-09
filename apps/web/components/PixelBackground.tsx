@@ -13,49 +13,55 @@ export default function PixelBackground() {
     if (!ctx) return;
 
     let animationId: number;
-    let particles: Particle[] = [];
+    let stars: Star[] = [];
     let candlesticks: Candlestick[] = [];
 
-    // Neon meme colors
-    const colors = ["#ff00ff", "#00ffff", "#ffff00", "#00ff00", "#ff6600", "#9d00ff", "#ff1493"];
+    // Star colors - mix of white and neon
+    const starColors = ["#ffffff", "#ff00ff", "#00ffff", "#ffff00", "#b388ff"];
 
-    class Particle {
+    class Star {
       x: number;
       y: number;
       size: number;
       color: string;
       alpha: number;
-      alphaChange: number;
-      pulseSpeed: number;
-      velocityY: number;
+      twinkleSpeed: number;
+      twinklePhase: number;
 
-      constructor(x: number, y: number) {
-        this.x = x;
-        this.y = y;
+      constructor(canvasWidth: number, canvasHeight: number) {
+        this.x = Math.random() * canvasWidth;
+        this.y = Math.random() * canvasHeight;
         this.size = Math.random() * 3 + 1;
-        this.color = colors[Math.floor(Math.random() * colors.length)];
-        this.alpha = Math.random() * 0.6 + 0.2;
-        this.alphaChange = (Math.random() - 0.5) * 0.03;
-        this.pulseSpeed = Math.random() * 0.02 + 0.01;
-        this.velocityY = Math.random() * 0.3 - 0.15;
+        // More colored stars for visibility
+        this.color = Math.random() > 0.7
+          ? starColors[Math.floor(Math.random() * starColors.length)]
+          : "#ffffff";
+        this.alpha = Math.random() * 0.5 + 0.5;
+        this.twinkleSpeed = Math.random() * 0.02 + 0.005;
+        this.twinklePhase = Math.random() * Math.PI * 2;
       }
 
-      update(canvasHeight: number) {
-        this.alpha += this.alphaChange;
-        if (this.alpha <= 0.1 || this.alpha >= 0.8) {
-          this.alphaChange *= -1;
-        }
-        this.y += this.velocityY;
-        if (this.y < 0) this.y = canvasHeight;
-        if (this.y > canvasHeight) this.y = 0;
+      update(time: number) {
+        // Smooth twinkling using sine wave - brighter range
+        this.alpha = 0.5 + Math.sin(time * this.twinkleSpeed + this.twinklePhase) * 0.5;
       }
 
       draw(ctx: CanvasRenderingContext2D) {
-        ctx.shadowColor = this.color;
-        ctx.shadowBlur = 8;
-        ctx.fillStyle = this.color;
         ctx.globalAlpha = this.alpha;
-        ctx.fillRect(this.x, this.y, this.size, this.size);
+        ctx.fillStyle = this.color;
+
+        // Draw star with glow effect
+        if (this.size > 1.5) {
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 10;
+        } else {
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 4;
+        }
+
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
         ctx.shadowBlur = 0;
       }
     }
@@ -73,18 +79,18 @@ export default function PixelBackground() {
 
       constructor(x: number, canvasHeight: number) {
         this.x = x;
-        this.width = 8;
-        this.height = Math.random() * 40 + 20;
-        this.wickHeight = Math.random() * 20 + 10;
-        this.y = canvasHeight - this.height - Math.random() * 100;
+        this.width = 6;
+        this.height = Math.random() * 30 + 15;
+        this.wickHeight = Math.random() * 15 + 5;
+        this.y = canvasHeight - this.height - Math.random() * 80;
         this.isGreen = Math.random() > 0.4;
         this.alpha = Math.random() * 0.15 + 0.05;
-        this.alphaChange = (Math.random() - 0.5) * 0.01;
+        this.alphaChange = (Math.random() - 0.5) * 0.005;
       }
 
       update() {
         this.alpha += this.alphaChange;
-        if (this.alpha <= 0.03 || this.alpha >= 0.2) {
+        if (this.alpha <= 0.04 || this.alpha >= 0.18) {
           this.alphaChange *= -1;
         }
       }
@@ -93,9 +99,7 @@ export default function PixelBackground() {
         const color = this.isGreen ? "#00ff00" : "#ff3333";
         ctx.globalAlpha = this.alpha;
         ctx.fillStyle = color;
-        // Body
         ctx.fillRect(this.x, this.y, this.width, this.height);
-        // Wick
         ctx.fillRect(this.x + this.width / 2 - 1, this.y - this.wickHeight, 2, this.wickHeight);
         ctx.fillRect(this.x + this.width / 2 - 1, this.y + this.height, 2, this.wickHeight);
       }
@@ -104,49 +108,43 @@ export default function PixelBackground() {
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      initParticles();
+      initStars();
       initCandlesticks();
     };
 
-    const initParticles = () => {
-      particles = [];
-      const spacing = 40;
-      const cols = Math.ceil(canvas.width / spacing);
-      const rows = Math.ceil(canvas.height / spacing);
-
-      for (let i = 0; i < cols; i++) {
-        for (let j = 0; j < rows; j++) {
-          if (Math.random() > 0.75) {
-            const offsetX = (Math.random() - 0.5) * 20;
-            const offsetY = (Math.random() - 0.5) * 20;
-            particles.push(new Particle(i * spacing + offsetX, j * spacing + offsetY));
-          }
-        }
+    const initStars = () => {
+      stars = [];
+      // Dense star field for vibrant effect
+      const starCount = Math.floor((canvas.width * canvas.height) / 2500);
+      for (let i = 0; i < starCount; i++) {
+        stars.push(new Star(canvas.width, canvas.height));
       }
     };
 
     const initCandlesticks = () => {
       candlesticks = [];
-      const spacing = 25;
+      const spacing = 30;
       const count = Math.ceil(canvas.width / spacing);
       for (let i = 0; i < count; i++) {
         candlesticks.push(new Candlestick(i * spacing, canvas.height));
       }
     };
 
+    let time = 0;
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      time++;
 
-      // Draw candlesticks in background
+      // Draw candlesticks in background (very subtle)
       candlesticks.forEach((candle) => {
         candle.update();
         candle.draw(ctx);
       });
 
-      // Draw particles
-      particles.forEach((particle) => {
-        particle.update(canvas.height);
-        particle.draw(ctx);
+      // Draw stars
+      stars.forEach((star) => {
+        star.update(time);
+        star.draw(ctx);
       });
 
       ctx.globalAlpha = 1;
@@ -168,7 +166,7 @@ export default function PixelBackground() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none z-0"
-      style={{ opacity: 0.6 }}
+      style={{ opacity: 1 }}
     />
   );
 }

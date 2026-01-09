@@ -52,7 +52,7 @@ export default function PortfolioPage() {
       <div className="max-w-4xl mx-auto relative z-10 font-mono">
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-pixel text-xl md:text-2xl text-neon-cyan glow-cyan">
-            💼 Portfolio
+            Portfolio
           </h1>
           <Link
             href="/"
@@ -82,17 +82,16 @@ export default function PortfolioPage() {
               <p className="text-3xl font-bold text-neon-green glow-green">
                 {portfolio.balance.toFixed(4)} <span className="text-xl text-neon-yellow">SOL</span>
               </p>
-              <p className="text-meme-light text-xs mt-2">💰 ready to ape</p>
+              <p className="text-meme-light text-xs mt-2">ready to trade</p>
             </div>
 
             <h2 className="font-pixel text-xs text-neon-yellow mb-6 glow-yellow">
-              {">"} APE_HISTORY 🦍
+              {">"} PORTFOLIO_HISTORY
             </h2>
 
             {portfolio.purchases.length === 0 ? (
               <div className="text-center py-12 text-meme-light">
-                <div className="text-4xl mb-4">🦧</div>
-                <p className="text-neon-cyan">no apes yet... go find some gems!</p>
+                <p className="text-neon-cyan">no trades yet...</p>
               </div>
             ) : (
               <div className="space-y-4">

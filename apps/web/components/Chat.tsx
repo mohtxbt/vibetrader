@@ -41,8 +41,20 @@ function formatNumber(num: number): string {
   return num.toFixed(2);
 }
 
+function formatMarkdown(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return <strong key={i} className="text-neon-yellow">{part.slice(2, -2)}</strong>;
+    }
+    return part;
+  });
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const isDev = process.env.NODE_ENV === "development";
+const ANON_LIMIT = Number(process.env.NEXT_PUBLIC_ANON_DAILY_LIMIT) || 2;
+const USER_LIMIT = Number(process.env.NEXT_PUBLIC_USER_DAILY_LIMIT) || 20;
 
 export default function Chat() {
   const { getToken, isSignedIn } = useAuth();
@@ -215,10 +227,10 @@ export default function Chat() {
             }`}
           >
             {rateLimit
-              ? `${rateLimit.remaining}/${rateLimit.limit} trades left`
+              ? `${rateLimit.remaining}/${rateLimit.limit} interactions left`
               : isSignedIn
-              ? "20/day limit"
-              : "2/day (sign in for 20!)"}
+              ? `${USER_LIMIT}/day limit`
+              : `${ANON_LIMIT}/day (sign in for ${USER_LIMIT}!)`}
           </span>
           {isDev && (
             <button
@@ -305,7 +317,7 @@ export default function Chat() {
                 </div>
               )}
               <span className="text-neon-pink mr-2">{msg.role === "user" ? ">" : "$"}</span>
-              <span className="whitespace-pre-wrap leading-relaxed">{msg.content}</span>
+              <span className="whitespace-pre-wrap leading-relaxed">{formatMarkdown(msg.content)}</span>
               {msg.decision && (
                 <div
                   className={`mt-3 pt-3 border-t border-neon-purple/30 flex items-center gap-2 font-bold ${

@@ -68,7 +68,7 @@ export default function LeaderboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h1 className="font-pixel text-xl md:text-2xl text-neon-yellow glow-yellow">
-            🏆 Leaderboard
+            Leaderboard
           </h1>
           <Link
             href="/"
@@ -80,7 +80,7 @@ export default function LeaderboardPage() {
 
         {loading && (
           <div className="text-neon-cyan animate-pulse glow-cyan">
-            $ loading degens... 🔄
+            $ loading...
           </div>
         )}
 
@@ -95,13 +95,13 @@ export default function LeaderboardPage() {
             {/* Global Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
               <div className="border-2 border-neon-pink/50 p-4 bg-meme-dark/80 box-glow-pink">
-                <p className="text-neon-pink text-xs mb-1">// total_apes</p>
+                <p className="text-neon-pink text-xs mb-1">// total_trades</p>
                 <p className="text-2xl font-bold text-white glow-pink">
                   {data.globalStats.totalTrades.toLocaleString()}
                 </p>
               </div>
               <div className="border-2 border-neon-cyan/50 p-4 bg-meme-dark/80 box-glow-cyan">
-                <p className="text-neon-cyan text-xs mb-1">// degens</p>
+                <p className="text-neon-cyan text-xs mb-1">// total_users</p>
                 <p className="text-2xl font-bold text-white glow-cyan">
                   {data.globalStats.totalUsersTraded.toLocaleString()}
                 </p>
@@ -124,7 +124,7 @@ export default function LeaderboardPage() {
             {data.globalStats.topTokens.length > 0 && (
               <div className="mb-8">
                 <h2 className="font-pixel text-xs text-neon-cyan mb-4 glow-cyan">
-                  {">"} HOT_TOKENS 🔥
+                  {">"} HOT_TOKENS
                 </h2>
                 <div className="flex gap-2 flex-wrap">
                   {data.globalStats.topTokens.map((token, i) => (
@@ -163,11 +163,11 @@ export default function LeaderboardPage() {
               {/* Header */}
               <div className="grid grid-cols-6 gap-2 md:gap-4 p-4 border-b border-neon-purple/30 text-neon-cyan text-xs">
                 <span>#</span>
-                <span>DEGEN</span>
-                <span className="text-right">APES</span>
-                <span className="text-right hidden md:block">YOLO&apos;D</span>
+                <span>USER</span>
+                <span className="text-right">TRADES</span>
+                <span className="text-right hidden md:block">INVESTED</span>
                 <span className="text-right">P&L</span>
-                <span className="text-right">WIN%</span>
+                <span className="text-right">WIN RATE</span>
               </div>
 
               {/* Rows */}
@@ -208,8 +208,7 @@ export default function LeaderboardPage() {
 
               {data.leaderboard.length === 0 && (
                 <div className="text-center py-12 text-meme-light">
-                  <div className="text-4xl mb-4">🦧</div>
-                  <p className="text-neon-cyan">no degens yet... be the first!</p>
+                  <p className="text-neon-cyan">no trades yet...</p>
                 </div>
               )}
             </div>
