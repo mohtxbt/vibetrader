@@ -57,3 +57,45 @@ export interface PortfolioResponse {
   balance: number;
   purchases: Purchase[];
 }
+
+// Leaderboard types
+export interface LeaderboardEntry {
+  rank: number;
+  userId: string;
+  displayName: string;
+  totalTrades: number;
+  totalInvestedSol: number;
+  totalPnlUsd: number;
+  winRate: number;
+  topToken?: string;
+}
+
+export interface TopToken {
+  address: string;
+  symbol: string;
+  tradeCount: number;
+  avgPnlPercent: number;
+}
+
+export interface GlobalStats {
+  totalTrades: number;
+  totalUsersTraded: number;
+  overallWinRate: number;
+  totalVolumeSOL: number;
+  topTokens: TopToken[];
+}
+
+export interface LeaderboardResponse {
+  globalStats: GlobalStats;
+  leaderboard: LeaderboardEntry[];
+  lastUpdated: string;
+}
+
+export interface UserStats {
+  totalTrades: number;
+  totalInvestedSol: number;
+  totalPnlUsd: number;
+  winRate: number;
+  rank: number | null;
+  lastUpdated?: string;
+}

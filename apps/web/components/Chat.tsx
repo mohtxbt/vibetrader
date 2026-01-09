@@ -107,13 +107,27 @@ export default function Chat() {
       });
 
       if (res.status === 429) {
-        const errorData = await res.json();
-        setRateLimit(errorData.rateLimit);
-        setMessages((prev) => {
-          const updated = [...prev];
-          updated[placeholderIndex] = { role: "assistant", content: errorData.message };
-          return updated;
-        });
+        try {
+          const errorData = await res.json();
+          if (errorData.rateLimit) setRateLimit(errorData.rateLimit);
+          const limitMessage = errorData.message || (isSignedIn
+            ? "You've used all your interactions for today. Come back tomorrow!"
+            : "You've used your free interactions. Sign in for more!");
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[placeholderIndex] = { role: "assistant", content: limitMessage };
+            return updated;
+          });
+        } catch {
+          const fallbackMessage = isSignedIn
+            ? "You've used all your interactions for today. Come back tomorrow!"
+            : "You've used your free interactions. Sign in for more!";
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[placeholderIndex] = { role: "assistant", content: fallbackMessage };
+            return updated;
+          });
+        }
         return;
       }
 
@@ -186,7 +200,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-[600px] max-w-2xl mx-auto border border-cyber-muted bg-black/80 backdrop-blur-sm">
+    <div className="flex flex-col h-[calc(100dvh-7rem)] max-w-2xl mx-auto border border-cyber-muted bg-black/80 backdrop-blur-sm w-full">
       {/* Rate Limit Display */}
       <div className="px-4 py-2 border-b border-cyber-muted flex justify-between items-center text-xs font-mono">
         <span className="text-cyber-muted">
@@ -239,24 +253,54 @@ export default function Chat() {
               }`}
             >
               {msg.tokenPreview && (
-                <div className="mb-3 pb-3 border-b border-cyber-muted">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-white font-bold">
-                      {msg.tokenPreview.name} ({msg.tokenPreview.symbol})
-                    </span>
-                    <span className={`text-xs ${msg.tokenPreview.priceChange24h >= 0 ? "text-cyber-green" : "text-red-400"}`}>
-                      {msg.tokenPreview.priceChange24h >= 0 ? "+" : ""}{msg.tokenPreview.priceChange24h.toFixed(2)}%
-                    </span>
+                <div className="mb-4 bg-black/50 border border-cyber-muted p-3">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-cyber-muted/50">
+                    <div className="flex items-center gap-2">
+                      <span className="text-cyber-green font-mono text-xs">[TOKEN]</span>
+                      <span className="text-white font-bold truncate max-w-[150px]">
+                        ${msg.tokenPreview.symbol}
+                      </span>
+                    </div>
+                    <div className={`px-2 py-0.5 text-xs font-mono ${
+                      msg.tokenPreview.priceChange24h >= 0
+                        ? "bg-cyber-green/20 text-cyber-green"
+                        : "bg-red-500/20 text-red-400"
+                    }`}>
+                      {msg.tokenPreview.priceChange24h >= 0 ? "+" : ""}{msg.tokenPreview.priceChange24h.toFixed(1)}%
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                    <div><span className="text-cyber-muted">Price:</span> <span className="text-white">${msg.tokenPreview.priceUsd}</span></div>
-                    <div><span className="text-cyber-muted">Liq:</span> <span className="text-white">${formatNumber(msg.tokenPreview.liquidity)}</span></div>
-                    <div><span className="text-cyber-muted">MCap:</span> <span className="text-white">{msg.tokenPreview.marketCap ? "$" + formatNumber(msg.tokenPreview.marketCap) : "N/A"}</span></div>
-                    <div><span className="text-cyber-muted">Vol:</span> <span className="text-white">${formatNumber(msg.tokenPreview.volume24h)}</span></div>
+
+                  {/* Name */}
+                  <div className="text-cyber-muted text-xs mb-3 truncate">{msg.tokenPreview.name}</div>
+
+                  {/* Price */}
+                  <div className="text-white text-lg font-mono mb-3">${msg.tokenPreview.priceUsd}</div>
+
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="bg-cyber-gray/30 p-2">
+                      <div className="text-cyber-muted mb-1">MCap</div>
+                      <div className="text-white font-mono">{msg.tokenPreview.marketCap ? "$" + formatNumber(msg.tokenPreview.marketCap) : "—"}</div>
+                    </div>
+                    <div className="bg-cyber-gray/30 p-2">
+                      <div className="text-cyber-muted mb-1">Liq</div>
+                      <div className="text-white font-mono">${formatNumber(msg.tokenPreview.liquidity)}</div>
+                    </div>
+                    <div className="bg-cyber-gray/30 p-2">
+                      <div className="text-cyber-muted mb-1">Vol 24h</div>
+                      <div className="text-white font-mono">${formatNumber(msg.tokenPreview.volume24h)}</div>
+                    </div>
                     {msg.tokenPreview.holders && (
-                      <div><span className="text-cyber-muted">Holders:</span> <span className="text-white">{msg.tokenPreview.holders.toLocaleString()}</span></div>
+                      <div className="bg-cyber-gray/30 p-2">
+                        <div className="text-cyber-muted mb-1">Holders</div>
+                        <div className="text-white font-mono">{msg.tokenPreview.holders.toLocaleString()}</div>
+                      </div>
                     )}
-                    <div><span className="text-cyber-muted">Age:</span> <span className="text-white">{msg.tokenPreview.age}</span></div>
+                    <div className="bg-cyber-gray/30 p-2">
+                      <div className="text-cyber-muted mb-1">Age</div>
+                      <div className="text-white font-mono">{msg.tokenPreview.age}</div>
+                    </div>
                   </div>
                 </div>
               )}

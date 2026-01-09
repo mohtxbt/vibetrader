@@ -3,10 +3,12 @@ import express from "express";
 import cors from "cors";
 import chatRouter from "./routes/chat.js";
 import portfolioRouter from "./routes/portfolio.js";
+import leaderboardRouter from "./routes/leaderboard.js";
 import { initWallet } from "./services/wallet.js";
 import { initDb } from "./db/index.js";
 import { clerkMiddleware, extractUserIdentifier } from "./middleware/auth.js";
 import { resetRateLimit } from "./db/rateLimits.js";
+import { startPriceUpdater } from "./services/priceUpdater.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -30,6 +32,7 @@ app.get("/health", (req, res) => {
 
 app.use("/chat", chatRouter);
 app.use("/portfolio", portfolioRouter);
+app.use("/leaderboard", leaderboardRouter);
 
 // Dev-only endpoint to reset rate limits
 if (process.env.NODE_ENV !== "production") {
@@ -47,6 +50,7 @@ if (process.env.NODE_ENV !== "production") {
 async function start() {
   await initDb();
   initWallet();
+  startPriceUpdater();
   app.listen(PORT, () => {
     console.log(`API server running on http://localhost:${PORT}`);
   });

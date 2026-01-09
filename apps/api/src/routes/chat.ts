@@ -78,7 +78,7 @@ router.post("/", checkRateLimit, async (req, res) => {
           BUY_AMOUNT_SOL
         );
 
-        // Record the purchase
+        // Record the purchase with user info
         await addPurchase({
           tokenAddress: swapResult.tokenAddress,
           tokenSymbol: "UNKNOWN", // Could fetch from token metadata
@@ -88,6 +88,8 @@ router.post("/", checkRateLimit, async (req, res) => {
           reasoning: agentResponse.decision.reasoning,
           txSignature: swapResult.signature,
           timestamp: new Date().toISOString(),
+          userId: req.userIdentifier,
+          userType: req.identifierType === "user" ? "user" : "ip",
         });
 
         response.decision = {
@@ -173,6 +175,8 @@ router.post("/stream", checkRateLimit, async (req, res) => {
           reasoning: decision.reasoning,
           txSignature: swapResult.signature,
           timestamp: new Date().toISOString(),
+          userId: req.userIdentifier,
+          userType: req.identifierType === "user" ? "user" : "ip",
         });
 
         res.write(`data: ${JSON.stringify({

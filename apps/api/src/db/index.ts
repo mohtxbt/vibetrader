@@ -6,6 +6,8 @@ const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
 });
 
+export { pool };
+
 export async function initDb(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS purchases (
@@ -19,6 +21,19 @@ export async function initDb(): Promise<void> {
       tx_signature TEXT NOT NULL,
       timestamp TIMESTAMPTZ NOT NULL
     )
+  `);
+
+  // Add user tracking columns to purchases (migration)
+  await pool.query(`
+    ALTER TABLE purchases
+    ADD COLUMN IF NOT EXISTS user_id TEXT,
+    ADD COLUMN IF NOT EXISTS user_type TEXT DEFAULT 'ip'
+  `);
+
+  // Index for user-based leaderboard queries
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_purchases_user_id
+    ON purchases(user_id)
   `);
 
   // Rate limits table for tracking daily interactions
@@ -39,14 +54,60 @@ export async function initDb(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_rate_limits_identifier_date
     ON rate_limits(identifier, date)
   `);
+
+  // Token price snapshots for P&L calculation
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS token_price_snapshots (
+      id TEXT PRIMARY KEY,
+      token_address TEXT NOT NULL,
+      price_usd DOUBLE PRECISION NOT NULL,
+      timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_token_prices_address_timestamp
+    ON token_price_snapshots(token_address, timestamp DESC)
+  `);
+
+  // Leaderboard cache (refreshed periodically)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS leaderboard_cache (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL UNIQUE,
+      user_type TEXT NOT NULL,
+      total_trades INTEGER NOT NULL DEFAULT 0,
+      total_invested_sol DOUBLE PRECISION NOT NULL DEFAULT 0,
+      total_current_value_usd DOUBLE PRECISION NOT NULL DEFAULT 0,
+      total_pnl_usd DOUBLE PRECISION NOT NULL DEFAULT 0,
+      win_count INTEGER NOT NULL DEFAULT 0,
+      win_rate DOUBLE PRECISION NOT NULL DEFAULT 0,
+      last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_leaderboard_pnl
+    ON leaderboard_cache(total_pnl_usd DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_leaderboard_trades
+    ON leaderboard_cache(total_trades DESC)
+  `);
 }
 
-export async function addPurchase(purchase: Omit<Purchase, "id">): Promise<Purchase> {
+export interface PurchaseInput extends Omit<Purchase, "id"> {
+  userId?: string;
+  userType?: "user" | "ip";
+}
+
+export async function addPurchase(purchase: PurchaseInput): Promise<Purchase> {
   const id = randomUUID();
 
   await pool.query(
-    `INSERT INTO purchases (id, token_address, token_symbol, amount_sol, amount_token, price_per_token, reasoning, tx_signature, timestamp)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+    `INSERT INTO purchases (id, token_address, token_symbol, amount_sol, amount_token, price_per_token, reasoning, tx_signature, timestamp, user_id, user_type)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
     [
       id,
       purchase.tokenAddress,
@@ -57,6 +118,8 @@ export async function addPurchase(purchase: Omit<Purchase, "id">): Promise<Purch
       purchase.reasoning,
       purchase.txSignature,
       purchase.timestamp,
+      purchase.userId || null,
+      purchase.userType || "ip",
     ]
   );
 
