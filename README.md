@@ -18,7 +18,7 @@ pnpm install
 # configure
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
-# then add your OPENAI_API_KEY and optionally SOLANA_PRIVATE_KEY
+# then add your OPENAI_API_KEY etc...
 
 # run
 pnpm dev

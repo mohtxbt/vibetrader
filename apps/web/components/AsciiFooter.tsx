@@ -54,7 +54,7 @@ export default function AsciiFooter() {
                 if (tokenEvents.devMode) {
                   tokenEvents.stopDevMode?.();
                 } else {
-                  tokenEvents.startDevMode();
+                  tokenEvents.startDevMode?.();
                 }
               }}
               className={`px-2 py-0.5 text-[10px] border transition-colors ${
