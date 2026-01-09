@@ -5,6 +5,10 @@
   "scripts": {
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:api": "turbo build --filter=api",
+    "build:web": "turbo build --filter=web",
+    "start:api": "turbo start --filter=api",
+    "start:web": "turbo start --filter=web",
     "lint": "turbo lint"
   },
   "devDependencies": {
