@@ -3,10 +3,17 @@ import { withCache, CacheTTL, CachePrefix } from "./cache.js";
 
 const SOLANA_NETWORK_ID = 1399811149;
 
-// BRO WTF?
-console.log("CODEX_API_KEY", process.env.CODEX_API_KEY);
+let codex: Codex | null = null;
 
-const codex = new Codex(process.env.CODEX_API_KEY!);
+function getCodex(): Codex {
+  if (!codex) {
+    if (!process.env.CODEX_API_KEY) {
+      throw new Error("CODEX_API_KEY environment variable is not set");
+    }
+    codex = new Codex(process.env.CODEX_API_KEY);
+  }
+  return codex;
+}
 
 export interface TokenInfo {
   address: string;
@@ -161,7 +168,7 @@ export async function getTokenInfo(tokenAddress: string): Promise<TokenInfo | nu
     try {
       console.log("[Codex] Fetching token info for:", tokenAddress);
 
-      const result = await codex.queries.filterTokens({
+      const result = await getCodex().queries.filterTokens({
         filters: {
           network: [SOLANA_NETWORK_ID],
         },
@@ -193,7 +200,7 @@ export async function searchTokens(query: string): Promise<TokenInfo[]> {
     try {
       console.log("[Codex] Searching tokens for:", query);
 
-      const result = await codex.queries.filterTokens({
+      const result = await getCodex().queries.filterTokens({
         filters: {
           network: [SOLANA_NETWORK_ID],
         },

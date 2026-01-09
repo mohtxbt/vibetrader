@@ -3,7 +3,12 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_ANON_DAILY_LIMIT",
+        "NEXT_PUBLIC_USER_DAILY_LIMIT"
+      ]
     },
     "dev": {
       "cache": false,
