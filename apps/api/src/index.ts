@@ -11,6 +11,7 @@ import { clerkMiddleware, extractUserIdentifier } from "./middleware/auth.js";
 import { resetRateLimit } from "./db/rateLimits.js";
 import { startPriceUpdater } from "./services/priceUpdater.js";
 import { initWebSocketServer } from "./services/websocket.js";
+import { initCache } from "./services/cache.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,6 +52,7 @@ if (process.env.NODE_ENV !== "production") {
 
 async function start() {
   await initDb();
+  await initCache();
   initWallet();
   startPriceUpdater();
 

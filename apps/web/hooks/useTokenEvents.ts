@@ -65,8 +65,8 @@ export function useTokenEvents() {
   const [isConnected, setIsConnected] = useState(false);
   const [devMode, setDevMode] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
-  const devIntervalRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const devIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Dev mode: generate fake events
   const startDevMode = useCallback(() => {
@@ -84,7 +84,7 @@ export function useTokenEvents() {
   const stopDevMode = useCallback(() => {
     if (devIntervalRef.current) {
       clearInterval(devIntervalRef.current);
-      devIntervalRef.current = undefined;
+      devIntervalRef.current = null;
     }
     setDevMode(false);
     setIsConnected(false);

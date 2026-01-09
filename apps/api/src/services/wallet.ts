@@ -7,6 +7,7 @@ import {
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import bs58 from "bs58";
+import { withCache, CacheTTL, CachePrefix } from "./cache.js";
 
 const RPC_URL = process.env.SOLANA_RPC_URL || "https://api.mainnet-beta.solana.com";
 const connection = new Connection(RPC_URL, "confirmed");
@@ -51,8 +52,12 @@ export function getPublicKey(): PublicKey {
 
 export async function getBalance(): Promise<number> {
   const wallet = getWallet();
-  const balance = await connection.getBalance(wallet.publicKey);
-  return balance / LAMPORTS_PER_SOL;
+  const cacheKey = `${CachePrefix.BALANCE}${wallet.publicKey.toBase58()}`;
+
+  return withCache(cacheKey, CacheTTL.BALANCE, async () => {
+    const balance = await connection.getBalance(wallet.publicKey);
+    return balance / LAMPORTS_PER_SOL;
+  });
 }
 
 export async function signAndSendTransaction(

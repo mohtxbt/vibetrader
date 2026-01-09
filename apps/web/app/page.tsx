@@ -27,7 +27,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen p-4 relative chaos-bg">
+    <main className="min-h-screen p-3 sm:p-4 relative chaos-bg">
       <div className="max-w-2xl mx-auto relative z-10">
         {/* Header - stacks on mobile */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4">

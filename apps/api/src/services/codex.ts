@@ -1,4 +1,5 @@
 import { Codex } from "@codex-data/sdk";
+import { withCache, CacheTTL, CachePrefix } from "./cache.js";
 
 const SOLANA_NETWORK_ID = 1399811149;
 
@@ -151,52 +152,60 @@ function mapTokenResult(t: any, fallbackAddress?: string): TokenInfo {
 }
 
 export async function getTokenInfo(tokenAddress: string): Promise<TokenInfo | null> {
-  try {
-    console.log("[Codex] Fetching token info for:", tokenAddress);
+  const cacheKey = `${CachePrefix.TOKEN_INFO}${tokenAddress}`;
 
-    const result = await codex.queries.filterTokens({
-      filters: {
-        network: [SOLANA_NETWORK_ID],
-      },
-      phrase: tokenAddress,
-      limit: 1,
-    });
+  return withCache(cacheKey, CacheTTL.TOKEN_INFO, async () => {
+    try {
+      console.log("[Codex] Fetching token info for:", tokenAddress);
 
-    const tokens = result.filterTokens?.results || [];
-    if (tokens.length === 0) {
-      console.log("[Codex] No token data found");
+      const result = await codex.queries.filterTokens({
+        filters: {
+          network: [SOLANA_NETWORK_ID],
+        },
+        phrase: tokenAddress,
+        limit: 1,
+      });
+
+      const tokens = result.filterTokens?.results || [];
+      if (tokens.length === 0) {
+        console.log("[Codex] No token data found");
+        return null;
+      }
+
+      const t = tokens[0];
+      if (!t) return null;
+
+      return mapTokenResult(t, tokenAddress);
+    } catch (error) {
+      console.error("[Codex] Error fetching token info:", error);
       return null;
     }
-
-    const t = tokens[0];
-    if (!t) return null;
-
-    return mapTokenResult(t, tokenAddress);
-  } catch (error) {
-    console.error("[Codex] Error fetching token info:", error);
-    return null;
-  }
+  });
 }
 
 export async function searchTokens(query: string): Promise<TokenInfo[]> {
-  try {
-    console.log("[Codex] Searching tokens for:", query);
+  const cacheKey = `${CachePrefix.TOKEN_SEARCH}${query.toLowerCase()}`;
 
-    const result = await codex.queries.filterTokens({
-      filters: {
-        network: [SOLANA_NETWORK_ID],
-      },
-      phrase: query,
-      limit: 5,
-    });
+  return withCache(cacheKey, CacheTTL.TOKEN_SEARCH, async () => {
+    try {
+      console.log("[Codex] Searching tokens for:", query);
 
-    const tokens = result.filterTokens?.results || [];
+      const result = await codex.queries.filterTokens({
+        filters: {
+          network: [SOLANA_NETWORK_ID],
+        },
+        phrase: query,
+        limit: 5,
+      });
 
-    return tokens.filter((t) => t !== null).map((t) => mapTokenResult(t));
-  } catch (error) {
-    console.error("[Codex] Error searching tokens:", error);
-    return [];
-  }
+      const tokens = result.filterTokens?.results || [];
+
+      return tokens.filter((t) => t !== null).map((t) => mapTokenResult(t));
+    } catch (error) {
+      console.error("[Codex] Error searching tokens:", error);
+      return [];
+    }
+  });
 }
 
 function formatChange(val: number): string {
