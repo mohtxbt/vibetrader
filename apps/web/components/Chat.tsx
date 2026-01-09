@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
+import { saveConversation, StoredConversation } from "@/lib/conversationStorage";
 
 interface RateLimitInfo {
   limit: number;
@@ -34,6 +35,12 @@ interface Message {
   };
 }
 
+interface ChatProps {
+  initialConversation?: StoredConversation | null;
+  conversationKey?: number;
+  onConversationUpdate?: () => void;
+}
+
 function formatNumber(num: number): string {
   if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(2) + "B";
   if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + "M";
@@ -51,19 +58,44 @@ function formatMarkdown(text: string): React.ReactNode {
   });
 }
 
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const isDev = process.env.NODE_ENV === "development";
 const ANON_LIMIT = Number(process.env.NEXT_PUBLIC_ANON_DAILY_LIMIT) || 2;
 const USER_LIMIT = Number(process.env.NEXT_PUBLIC_USER_DAILY_LIMIT) || 20;
 
-export default function Chat() {
+export default function Chat({ initialConversation, conversationKey, onConversationUpdate }: ChatProps) {
   const { getToken, isSignedIn } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Message[]>(initialConversation?.messages || []);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(
+    initialConversation?.id || null
+  );
   const [rateLimit, setRateLimit] = useState<RateLimitInfo | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Reset state when conversationKey changes (new conversation) or initialConversation changes
+  useEffect(() => {
+    if (initialConversation) {
+      setMessages(initialConversation.messages);
+      setConversationId(initialConversation.id);
+    } else {
+      setMessages([]);
+      setConversationId(null);
+    }
+  }, [conversationKey, initialConversation]);
+
+  // Save conversation to localStorage when messages change
+  const saveToStorage = useCallback((id: string, msgs: Message[]) => {
+    if (msgs.length > 0) {
+      saveConversation(id, msgs);
+      onConversationUpdate?.();
+    }
+  }, [onConversationUpdate]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -95,6 +127,13 @@ export default function Chat() {
 
     const userMessage = input.trim();
     setInput("");
+
+    // Generate local conversation ID if needed
+    const currentConvId = conversationId || generateId();
+    if (!conversationId) {
+      setConversationId(currentConvId);
+    }
+
     setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setLoading(true);
 
@@ -194,6 +233,11 @@ export default function Chat() {
           } else if (data.type === "done") {
             if (data.conversationId) setConversationId(data.conversationId);
             if (data.rateLimit) setRateLimit(data.rateLimit);
+            // Save conversation to localStorage
+            setMessages((prev) => {
+              saveToStorage(data.conversationId || currentConvId, prev);
+              return prev;
+            });
           } else if (data.type === "error") {
             throw new Error(data.error);
           }
@@ -204,6 +248,8 @@ export default function Chat() {
       setMessages((prev) => {
         const updated = [...prev];
         updated[placeholderIndex] = { role: "assistant", content: "ERROR: Connection failed. Retry." };
+        // Still save conversation on error
+        saveToStorage(currentConvId, updated);
         return updated;
       });
     } finally {
@@ -212,30 +258,33 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-7rem)] max-w-2xl mx-auto neon-border backdrop-blur-sm w-full">
+    <div className="flex flex-col h-[calc(100dvh-8rem)] sm:h-[calc(100dvh-7rem)] max-w-2xl mx-auto neon-border backdrop-blur-sm w-full">
       {/* Rate Limit Display */}
-      <div className="px-4 py-2 border-b border-neon-pink/30 flex justify-between items-center text-xs font-mono bg-meme-dark/80">
+      <div className="px-3 sm:px-4 py-2 border-b border-neon-pink/30 flex justify-between items-center text-xs font-mono bg-meme-dark/80">
         <span className={`${isSignedIn ? "text-neon-gold glow-yellow" : "text-meme-light"}`}>
           {isSignedIn ? "PRO" : "ANON"}
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <span
-            className={`${
+            className={`text-[10px] sm:text-xs ${
               rateLimit && rateLimit.remaining <= 2
                 ? "text-neon-red animate-flash"
                 : "text-neon-cyan"
             }`}
           >
             {rateLimit
-              ? `${rateLimit.remaining}/${rateLimit.limit} interactions left`
+              ? `${rateLimit.remaining}/${rateLimit.limit} left`
               : isSignedIn
-              ? `${USER_LIMIT}/day limit`
-              : `${ANON_LIMIT}/day (sign in for ${USER_LIMIT}!)`}
+              ? `${USER_LIMIT}/day`
+              : `${ANON_LIMIT}/day`}
           </span>
+          {!isSignedIn && !rateLimit && (
+            <span className="hidden sm:inline text-neon-green text-[10px]">(sign in for {USER_LIMIT}!)</span>
+          )}
           {isDev && (
             <button
               onClick={resetUsage}
-              className="text-neon-yellow hover:text-neon-orange transition-colors hover:glow-yellow"
+              className="text-neon-yellow hover:text-neon-orange transition-colors hover:glow-yellow p-1"
               title="[DEV] Reset usage"
             >
               [reset]
@@ -244,12 +293,12 @@ export default function Chat() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-sm bg-meme-black/60">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 font-mono text-xs sm:text-sm bg-meme-black/60">
         {messages.length === 0 && (
-          <div className="text-center mt-12 space-y-4">
-            <div className="text-4xl animate-float">🚀💰🔥</div>
-            <p className="font-pixel text-sm text-neon-pink glow-pink">PITCH ME A TOKEN</p>
-            <p className="text-neon-cyan text-xs glow-cyan">// convince me to ape in</p>
+          <div className="text-center mt-8 sm:mt-12 space-y-3 sm:space-y-4">
+            <div className="text-3xl sm:text-4xl animate-float">🚀💰🔥</div>
+            <p className="font-pixel text-xs sm:text-sm text-neon-pink glow-pink">PITCH ME A TOKEN</p>
+            <p className="text-neon-cyan text-[10px] sm:text-xs glow-cyan">// convince me to ape in</p>
           </div>
         )}
         {messages.map((msg, i) => (
@@ -258,59 +307,59 @@ export default function Chat() {
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] px-4 py-3 ${
+              className={`max-w-[90%] sm:max-w-[80%] px-3 sm:px-4 py-2 sm:py-3 ${
                 msg.role === "user"
                   ? "bg-neon-pink/20 border-2 border-neon-pink/50 text-white box-glow-pink"
                   : "bg-meme-gray/50 border-2 border-neon-cyan/30 text-meme-light"
               }`}
             >
               {msg.tokenPreview && (
-                <div className="mb-4 bg-meme-dark/80 border-2 border-neon-yellow/50 p-3 box-glow-cyan">
+                <div className="mb-3 sm:mb-4 bg-meme-dark/80 border-2 border-neon-yellow/50 p-2 sm:p-3 box-glow-cyan">
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-neon-pink/30">
-                    <div className="flex items-center gap-2">
-                      <span className="text-neon-yellow font-mono text-xs glow-yellow">🪙 TOKEN</span>
-                      <span className="text-neon-pink font-bold truncate max-w-[150px] glow-pink">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3 pb-2 border-b border-neon-pink/30">
+                    <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                      <span className="text-neon-yellow font-mono text-[10px] sm:text-xs glow-yellow shrink-0">🪙</span>
+                      <span className="text-neon-pink font-bold truncate text-xs sm:text-sm glow-pink">
                         ${msg.tokenPreview.symbol}
                       </span>
                     </div>
-                    <div className={`px-2 py-0.5 text-xs font-mono font-bold ${
+                    <div className={`px-1.5 sm:px-2 py-0.5 text-[10px] sm:text-xs font-mono font-bold shrink-0 ${
                       msg.tokenPreview.priceChange24h >= 0
                         ? "bg-neon-green/20 text-neon-green glow-green"
                         : "bg-neon-red/20 text-neon-red"
                     }`}>
-                      {msg.tokenPreview.priceChange24h >= 0 ? "🚀 +" : "📉 "}{msg.tokenPreview.priceChange24h.toFixed(1)}%
+                      {msg.tokenPreview.priceChange24h >= 0 ? "+" : ""}{msg.tokenPreview.priceChange24h.toFixed(1)}%
                     </div>
                   </div>
 
                   {/* Name */}
-                  <div className="text-meme-light text-xs mb-3 truncate">{msg.tokenPreview.name}</div>
+                  <div className="text-meme-light text-[10px] sm:text-xs mb-2 sm:mb-3 truncate">{msg.tokenPreview.name}</div>
 
                   {/* Price */}
-                  <div className="text-neon-green text-xl font-mono mb-3 glow-green font-bold">${msg.tokenPreview.priceUsd}</div>
+                  <div className="text-neon-green text-base sm:text-xl font-mono mb-2 sm:mb-3 glow-green font-bold">${msg.tokenPreview.priceUsd}</div>
 
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
-                      <div className="text-neon-cyan mb-1">MCap</div>
+                  {/* Stats Grid - 2 cols on mobile, 3 on larger */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5 sm:gap-2 text-[10px] sm:text-xs">
+                    <div className="bg-meme-gray/50 p-1.5 sm:p-2 border border-neon-purple/30">
+                      <div className="text-neon-cyan mb-0.5 sm:mb-1">MCap</div>
                       <div className="text-white font-mono">{msg.tokenPreview.marketCap ? "$" + formatNumber(msg.tokenPreview.marketCap) : "—"}</div>
                     </div>
-                    <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
-                      <div className="text-neon-cyan mb-1">Liq</div>
+                    <div className="bg-meme-gray/50 p-1.5 sm:p-2 border border-neon-purple/30">
+                      <div className="text-neon-cyan mb-0.5 sm:mb-1">Liq</div>
                       <div className="text-white font-mono">${formatNumber(msg.tokenPreview.liquidity)}</div>
                     </div>
-                    <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
-                      <div className="text-neon-cyan mb-1">Vol 24h</div>
+                    <div className="bg-meme-gray/50 p-1.5 sm:p-2 border border-neon-purple/30">
+                      <div className="text-neon-cyan mb-0.5 sm:mb-1">Vol 24h</div>
                       <div className="text-white font-mono">${formatNumber(msg.tokenPreview.volume24h)}</div>
                     </div>
                     {msg.tokenPreview.holders && (
-                      <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
-                        <div className="text-neon-cyan mb-1">Holders</div>
+                      <div className="bg-meme-gray/50 p-1.5 sm:p-2 border border-neon-purple/30">
+                        <div className="text-neon-cyan mb-0.5 sm:mb-1">Holders</div>
                         <div className="text-white font-mono">{msg.tokenPreview.holders.toLocaleString()}</div>
                       </div>
                     )}
-                    <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
-                      <div className="text-neon-cyan mb-1">Age</div>
+                    <div className="bg-meme-gray/50 p-1.5 sm:p-2 border border-neon-purple/30">
+                      <div className="text-neon-cyan mb-0.5 sm:mb-1">Age</div>
                       <div className="text-white font-mono">{msg.tokenPreview.age}</div>
                     </div>
                   </div>
@@ -320,7 +369,7 @@ export default function Chat() {
               <span className="whitespace-pre-wrap leading-relaxed">{formatMarkdown(msg.content)}</span>
               {msg.decision && (
                 <div
-                  className={`mt-3 pt-3 border-t border-neon-purple/30 flex items-center gap-2 font-bold ${
+                  className={`mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-neon-purple/30 flex flex-wrap items-center gap-1 sm:gap-2 font-bold text-xs sm:text-sm ${
                     msg.decision.action === "buy"
                       ? "text-neon-green glow-green"
                       : "text-neon-red"
@@ -329,12 +378,12 @@ export default function Chat() {
                   {msg.decision.action === "buy" ? (
                     <>
                       <span>🚀 APED IN</span>
-                      <span>bought {msg.decision.amount?.toFixed(4)} tokens</span>
+                      <span className="text-[10px] sm:text-xs opacity-80">bought {msg.decision.amount?.toFixed(4)} tokens</span>
                     </>
                   ) : (
                     <>
                       <span>❌ NGMI</span>
-                      <span>rejected</span>
+                      <span className="opacity-80">rejected</span>
                     </>
                   )}
                 </div>
@@ -345,20 +394,20 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="p-4 border-t border-neon-pink/30 bg-meme-dark/80">
-        <div className="flex gap-3">
+      <form onSubmit={sendMessage} className="p-3 sm:p-4 border-t border-neon-pink/30 bg-meme-dark/80">
+        <div className="flex gap-2 sm:gap-3">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="enter your pitch..."
-            className="flex-1 bg-meme-black text-white font-mono px-4 py-3 border-2 border-neon-cyan/50 focus:outline-none focus:border-neon-pink focus:box-glow-pink transition-colors placeholder:text-meme-light"
+            className="flex-1 bg-meme-black text-white font-mono text-sm sm:text-base px-3 sm:px-4 py-3 min-h-[44px] border-2 border-neon-cyan/50 focus:outline-none focus:border-neon-pink focus:box-glow-pink transition-colors placeholder:text-meme-light"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="bg-neon-pink text-white px-6 py-3 font-mono font-bold hover:bg-neon-purple disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="bg-neon-pink text-white px-4 sm:px-6 py-3 min-h-[44px] min-w-[60px] sm:min-w-[80px] font-mono font-bold text-sm sm:text-base hover:bg-neon-purple active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             {loading ? "..." : "SEND"}
           </button>

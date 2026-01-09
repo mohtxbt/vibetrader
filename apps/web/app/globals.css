@@ -152,3 +152,28 @@ body {
   background: rgba(255, 0, 255, 0.5);
   color: #fff;
 }
+
+/* Hide scrollbar utility for horizontal nav */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Safe area utilities for notched devices */
+.pb-safe {
+  padding-bottom: max(2.5rem, env(safe-area-inset-bottom));
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Mobile touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  button, a, input, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}

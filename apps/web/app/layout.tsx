@@ -18,7 +18,10 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className="min-h-screen pb-10">
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        </head>
+        <body className="min-h-screen pb-10 pb-safe">
           <PixelBackground />
           <TokenEventBackground />
           {children}
