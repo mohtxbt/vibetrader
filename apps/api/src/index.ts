@@ -12,6 +12,9 @@ import { resetRateLimit } from "./db/rateLimits.js";
 import { startPriceUpdater } from "./services/priceUpdater.js";
 import { initWebSocketServer } from "./services/websocket.js";
 import { initCache } from "./services/cache.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
