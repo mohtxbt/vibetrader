@@ -1,39 +1,72 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 body {
-  background: #000000;
+  background: linear-gradient(135deg, #0a0012 0%, #1a0030 50%, #0a0020 100%);
   color: #ffffff;
   min-height: 100vh;
 }
 
-/* Grain texture overlay */
-.grain {
+/* Chaos background pattern */
+.chaos-bg {
+  background:
+    radial-gradient(ellipse at 20% 20%, rgba(255, 0, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(0, 255, 255, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 0, 0.1) 0%, transparent 50%),
+    linear-gradient(135deg, #0a0012 0%, #1a0030 50%, #0a0020 100%);
+}
+
+/* Animated gradient border */
+.neon-border {
   position: relative;
+  border: 2px solid transparent;
+  background: linear-gradient(#1a0020, #1a0020) padding-box,
+              linear-gradient(135deg, #ff00ff, #00ffff, #ffff00, #ff00ff) border-box;
+  background-size: 100% 100%, 300% 300%;
+  animation: gradient-border 3s ease infinite;
 }
 
-.grain::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.03;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+@keyframes gradient-border {
+  0%, 100% { background-position: 0% 0%, 0% 50%; }
+  50% { background-position: 0% 0%, 100% 50%; }
 }
 
-/* Terminal glow */
+/* Neon glow effects - subtle */
+.glow-pink {
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.6);
+}
+
+.glow-cyan {
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+}
+
+.glow-yellow {
+  text-shadow: 0 0 8px rgba(255, 255, 0, 0.6);
+}
+
 .glow-green {
-  text-shadow: 0 0 5px rgba(0, 255, 0, 0.6), 0 0 10px rgba(0, 255, 0, 0.3);
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
 }
 
-.glow-white {
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5), 0 0 10px rgba(255, 255, 255, 0.2);
+.glow-multi {
+  text-shadow: 0 0 8px rgba(255, 0, 255, 0.5), 0 0 12px rgba(0, 255, 255, 0.3);
+}
+
+/* Box glows - subtle */
+.box-glow-pink {
+  box-shadow: 0 0 10px rgba(255, 0, 255, 0.25);
+}
+
+.box-glow-cyan {
+  box-shadow: 0 0 10px rgba(0, 255, 255, 0.25);
+}
+
+.box-glow-green {
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.25);
 }
 
 /* Hover wobble effect */
@@ -51,25 +84,72 @@ body {
   75% { transform: rotate(3deg); }
 }
 
-/* Terminal border */
-.terminal-border {
-  border: 1px solid #333;
-  background: rgba(0, 0, 0, 0.8);
+/* Money rain animation */
+@keyframes money-fall {
+  0% { transform: translateY(-100%) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
 }
 
-/* Custom scrollbar */
+/* Candlestick chart pattern (decorative) */
+.chart-pattern {
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 10px,
+      rgba(0, 255, 0, 0.1) 10px,
+      rgba(0, 255, 0, 0.1) 12px,
+      transparent 12px,
+      transparent 20px,
+      rgba(255, 0, 0, 0.1) 20px,
+      rgba(255, 0, 0, 0.1) 22px
+    );
+}
+
+/* Meme card styling */
+.meme-card {
+  background: linear-gradient(135deg, rgba(26, 0, 32, 0.9) 0%, rgba(45, 31, 61, 0.9) 100%);
+  border: 2px solid;
+  border-image: linear-gradient(135deg, #ff00ff, #00ffff) 1;
+}
+
+/* Crazy button */
+.crazy-button {
+  background: linear-gradient(135deg, #ff00ff, #ff6600, #ffff00);
+  background-size: 200% 200%;
+  animation: gradient-x 2s ease infinite;
+  color: black;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.crazy-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 30px rgba(255, 0, 255, 0.5);
+}
+
+/* Custom scrollbar - neon style */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: #1a0020;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: linear-gradient(180deg, #ff00ff, #00ffff);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: linear-gradient(180deg, #ff66ff, #66ffff);
+}
+
+/* Selection color */
+::selection {
+  background: rgba(255, 0, 255, 0.5);
+  color: #fff;
 }

@@ -200,30 +200,30 @@ export default function Chat() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-7rem)] max-w-2xl mx-auto border border-cyber-muted bg-black/80 backdrop-blur-sm w-full">
+    <div className="flex flex-col h-[calc(100dvh-7rem)] max-w-2xl mx-auto neon-border backdrop-blur-sm w-full">
       {/* Rate Limit Display */}
-      <div className="px-4 py-2 border-b border-cyber-muted flex justify-between items-center text-xs font-mono">
-        <span className="text-cyber-muted">
-          {isSignedIn ? "PRO USER" : "FREE USER"}
+      <div className="px-4 py-2 border-b border-neon-pink/30 flex justify-between items-center text-xs font-mono bg-meme-dark/80">
+        <span className={`${isSignedIn ? "text-neon-gold glow-yellow" : "text-meme-light"}`}>
+          {isSignedIn ? "PRO" : "ANON"}
         </span>
         <div className="flex items-center gap-3">
           <span
             className={`${
               rateLimit && rateLimit.remaining <= 2
-                ? "text-red-400"
-                : "text-cyber-light"
+                ? "text-neon-red animate-flash"
+                : "text-neon-cyan"
             }`}
           >
             {rateLimit
-              ? `${rateLimit.remaining}/${rateLimit.limit} interactions remaining`
+              ? `${rateLimit.remaining}/${rateLimit.limit} trades left`
               : isSignedIn
               ? "20/day limit"
-              : "2/day limit (sign in for 20!)"}
+              : "2/day (sign in for 20!)"}
           </span>
           {isDev && (
             <button
               onClick={resetUsage}
-              className="text-yellow-500 hover:text-yellow-300 transition-colors"
+              className="text-neon-yellow hover:text-neon-orange transition-colors hover:glow-yellow"
               title="[DEV] Reset usage"
             >
               [reset]
@@ -232,12 +232,12 @@ export default function Chat() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-sm">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 font-mono text-sm bg-meme-black/60">
         {messages.length === 0 && (
           <div className="text-center mt-12 space-y-4">
-            <div className="text-2xl text-cyber-light">{">"}_</div>
-            <p className="font-pixel text-xs text-white glow-white">PITCH ME A TOKEN</p>
-            <p className="text-cyber-light text-xs">// tell me why I should buy</p>
+            <div className="text-4xl animate-float">🚀💰🔥</div>
+            <p className="font-pixel text-sm text-neon-pink glow-pink">PITCH ME A TOKEN</p>
+            <p className="text-neon-cyan text-xs glow-cyan">// convince me to ape in</p>
           </div>
         )}
         {messages.map((msg, i) => (
@@ -248,80 +248,80 @@ export default function Chat() {
             <div
               className={`max-w-[80%] px-4 py-3 ${
                 msg.role === "user"
-                  ? "bg-cyber-gray border border-cyber-muted text-white"
-                  : "bg-transparent border border-cyber-muted text-cyber-light"
+                  ? "bg-neon-pink/20 border-2 border-neon-pink/50 text-white box-glow-pink"
+                  : "bg-meme-gray/50 border-2 border-neon-cyan/30 text-meme-light"
               }`}
             >
               {msg.tokenPreview && (
-                <div className="mb-4 bg-black/50 border border-cyber-muted p-3">
+                <div className="mb-4 bg-meme-dark/80 border-2 border-neon-yellow/50 p-3 box-glow-cyan">
                   {/* Header */}
-                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-cyber-muted/50">
+                  <div className="flex items-center justify-between mb-3 pb-2 border-b border-neon-pink/30">
                     <div className="flex items-center gap-2">
-                      <span className="text-cyber-green font-mono text-xs">[TOKEN]</span>
-                      <span className="text-white font-bold truncate max-w-[150px]">
+                      <span className="text-neon-yellow font-mono text-xs glow-yellow">🪙 TOKEN</span>
+                      <span className="text-neon-pink font-bold truncate max-w-[150px] glow-pink">
                         ${msg.tokenPreview.symbol}
                       </span>
                     </div>
-                    <div className={`px-2 py-0.5 text-xs font-mono ${
+                    <div className={`px-2 py-0.5 text-xs font-mono font-bold ${
                       msg.tokenPreview.priceChange24h >= 0
-                        ? "bg-cyber-green/20 text-cyber-green"
-                        : "bg-red-500/20 text-red-400"
+                        ? "bg-neon-green/20 text-neon-green glow-green"
+                        : "bg-neon-red/20 text-neon-red"
                     }`}>
-                      {msg.tokenPreview.priceChange24h >= 0 ? "+" : ""}{msg.tokenPreview.priceChange24h.toFixed(1)}%
+                      {msg.tokenPreview.priceChange24h >= 0 ? "🚀 +" : "📉 "}{msg.tokenPreview.priceChange24h.toFixed(1)}%
                     </div>
                   </div>
 
                   {/* Name */}
-                  <div className="text-cyber-muted text-xs mb-3 truncate">{msg.tokenPreview.name}</div>
+                  <div className="text-meme-light text-xs mb-3 truncate">{msg.tokenPreview.name}</div>
 
                   {/* Price */}
-                  <div className="text-white text-lg font-mono mb-3">${msg.tokenPreview.priceUsd}</div>
+                  <div className="text-neon-green text-xl font-mono mb-3 glow-green font-bold">${msg.tokenPreview.priceUsd}</div>
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="bg-cyber-gray/30 p-2">
-                      <div className="text-cyber-muted mb-1">MCap</div>
+                    <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
+                      <div className="text-neon-cyan mb-1">MCap</div>
                       <div className="text-white font-mono">{msg.tokenPreview.marketCap ? "$" + formatNumber(msg.tokenPreview.marketCap) : "—"}</div>
                     </div>
-                    <div className="bg-cyber-gray/30 p-2">
-                      <div className="text-cyber-muted mb-1">Liq</div>
+                    <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
+                      <div className="text-neon-cyan mb-1">Liq</div>
                       <div className="text-white font-mono">${formatNumber(msg.tokenPreview.liquidity)}</div>
                     </div>
-                    <div className="bg-cyber-gray/30 p-2">
-                      <div className="text-cyber-muted mb-1">Vol 24h</div>
+                    <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
+                      <div className="text-neon-cyan mb-1">Vol 24h</div>
                       <div className="text-white font-mono">${formatNumber(msg.tokenPreview.volume24h)}</div>
                     </div>
                     {msg.tokenPreview.holders && (
-                      <div className="bg-cyber-gray/30 p-2">
-                        <div className="text-cyber-muted mb-1">Holders</div>
+                      <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
+                        <div className="text-neon-cyan mb-1">Holders</div>
                         <div className="text-white font-mono">{msg.tokenPreview.holders.toLocaleString()}</div>
                       </div>
                     )}
-                    <div className="bg-cyber-gray/30 p-2">
-                      <div className="text-cyber-muted mb-1">Age</div>
+                    <div className="bg-meme-gray/50 p-2 border border-neon-purple/30">
+                      <div className="text-neon-cyan mb-1">Age</div>
                       <div className="text-white font-mono">{msg.tokenPreview.age}</div>
                     </div>
                   </div>
                 </div>
               )}
-              <span className="text-cyber-muted mr-2">{msg.role === "user" ? ">" : "$"}</span>
+              <span className="text-neon-pink mr-2">{msg.role === "user" ? ">" : "$"}</span>
               <span className="whitespace-pre-wrap leading-relaxed">{msg.content}</span>
               {msg.decision && (
                 <div
-                  className={`mt-3 pt-3 border-t border-cyber-muted flex items-center gap-2 ${
+                  className={`mt-3 pt-3 border-t border-neon-purple/30 flex items-center gap-2 font-bold ${
                     msg.decision.action === "buy"
-                      ? "text-cyber-green glow-green"
-                      : "text-cyber-light"
+                      ? "text-neon-green glow-green"
+                      : "text-neon-red"
                   }`}
                 >
                   {msg.decision.action === "buy" ? (
                     <>
-                      <span>[OK]</span>
+                      <span>🚀 APED IN</span>
                       <span>bought {msg.decision.amount?.toFixed(4)} tokens</span>
                     </>
                   ) : (
                     <>
-                      <span>[PASS]</span>
+                      <span>❌ NGMI</span>
                       <span>rejected</span>
                     </>
                   )}
@@ -333,22 +333,22 @@ export default function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={sendMessage} className="p-4 border-t border-cyber-muted">
+      <form onSubmit={sendMessage} className="p-4 border-t border-neon-pink/30 bg-meme-dark/80">
         <div className="flex gap-3">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="enter pitch..."
-            className="flex-1 bg-black text-white font-mono px-4 py-3 border border-cyber-muted focus:outline-none focus:border-white transition-colors placeholder:text-cyber-muted"
+            placeholder="enter your pitch..."
+            className="flex-1 bg-meme-black text-white font-mono px-4 py-3 border-2 border-neon-cyan/50 focus:outline-none focus:border-neon-pink focus:box-glow-pink transition-colors placeholder:text-meme-light"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="bg-white text-black px-6 py-3 font-mono hover:bg-cyber-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="bg-neon-pink text-white px-6 py-3 font-mono font-bold hover:bg-neon-purple disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            SEND
+            {loading ? "..." : "SEND"}
           </button>
         </div>
       </form>

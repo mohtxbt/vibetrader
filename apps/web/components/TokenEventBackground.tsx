@@ -43,10 +43,10 @@ export default function TokenEventBackground() {
         case "bought":
           return "#00ff00";
         case "rejected":
-          return "#ff4444";
+          return "#ff3333";
         case "pitched":
         default:
-          return "#888888";
+          return "#ff00ff";
       }
     };
 

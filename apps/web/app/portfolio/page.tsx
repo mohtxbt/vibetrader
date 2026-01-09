@@ -48,88 +48,89 @@ export default function PortfolioPage() {
     `${addr.slice(0, 4)}...${addr.slice(-4)}`;
 
   return (
-    <main className="min-h-screen p-4 relative">
+    <main className="min-h-screen p-4 relative chaos-bg">
       <div className="max-w-4xl mx-auto relative z-10 font-mono">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="font-pixel text-xl md:text-2xl text-white glow-white">
-            Portfolio
+          <h1 className="font-pixel text-xl md:text-2xl text-neon-cyan glow-cyan">
+            💼 Portfolio
           </h1>
           <Link
             href="/"
-            className="text-cyber-light hover:text-white transition-colors text-sm"
+            className="text-neon-pink hover:text-neon-yellow transition-colors text-sm hover:glow-yellow"
           >
             [back]
           </Link>
         </div>
 
         {loading && (
-          <div className="text-cyber-light animate-pulse">
-            $ loading wallet...
+          <div className="text-neon-cyan animate-pulse glow-cyan">
+            $ loading wallet... 🔄
           </div>
         )}
 
         {error && (
-          <div className="border border-white p-4 mb-6">
-            <p className="text-white">ERROR: {error}</p>
+          <div className="border-2 border-neon-red p-4 mb-6 bg-neon-red/10">
+            <p className="text-neon-red">❌ ERROR: {error}</p>
           </div>
         )}
 
         {portfolio && (
           <>
             {/* Balance Card */}
-            <div className="border border-cyber-muted p-6 mb-8 bg-black/50">
-              <p className="text-cyber-muted text-xs mb-1">// wallet balance</p>
-              <p className="text-3xl font-bold text-white glow-white">
-                {portfolio.balance.toFixed(4)} <span className="text-xl text-cyber-light">SOL</span>
+            <div className="neon-border p-6 mb-8 bg-meme-dark/80">
+              <p className="text-neon-pink text-xs mb-1">// wallet balance</p>
+              <p className="text-3xl font-bold text-neon-green glow-green">
+                {portfolio.balance.toFixed(4)} <span className="text-xl text-neon-yellow">SOL</span>
               </p>
+              <p className="text-meme-light text-xs mt-2">💰 ready to ape</p>
             </div>
 
-            <h2 className="font-pixel text-xs text-cyber-light mb-6">
-              {">"} PURCHASE_HISTORY
+            <h2 className="font-pixel text-xs text-neon-yellow mb-6 glow-yellow">
+              {">"} APE_HISTORY 🦍
             </h2>
 
             {portfolio.purchases.length === 0 ? (
-              <div className="text-center py-12 text-cyber-muted">
-                <div className="text-2xl mb-4">[ empty ]</div>
-                <p>no purchases yet</p>
+              <div className="text-center py-12 text-meme-light">
+                <div className="text-4xl mb-4">🦧</div>
+                <p className="text-neon-cyan">no apes yet... go find some gems!</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {portfolio.purchases.map((purchase) => (
                   <div
                     key={purchase.id}
-                    className="bg-black/50 border border-cyber-muted p-5 space-y-4 hover:border-white transition-colors"
+                    className="bg-meme-dark/80 border-2 border-neon-purple/50 p-5 space-y-4 hover:border-neon-pink transition-colors hover:box-glow-pink"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-white font-bold">{purchase.tokenSymbol}</span>
-                        <span className="text-cyber-muted text-xs">
+                        <span className="text-neon-pink font-bold glow-pink">${purchase.tokenSymbol}</span>
+                        <span className="text-meme-light text-xs">
                           {shortenAddress(purchase.tokenAddress)}
                         </span>
                       </div>
-                      <span className="text-cyber-muted text-xs">
+                      <span className="text-neon-cyan text-xs">
                         {new Date(purchase.timestamp).toLocaleDateString()}
                       </span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-4 text-xs">
-                      <div className="border border-cyber-muted p-3">
-                        <p className="text-cyber-muted mb-1">spent</p>
+                      <div className="border border-neon-purple/30 p-3 bg-meme-gray/30">
+                        <p className="text-neon-cyan mb-1">spent</p>
                         <p className="text-white">{purchase.amountSol.toFixed(4)} SOL</p>
                       </div>
-                      <div className="border border-cyber-muted p-3">
-                        <p className="text-cyber-muted mb-1">received</p>
-                        <p className="text-cyber-green glow-green">{purchase.amountToken.toLocaleString()}</p>
+                      <div className="border border-neon-purple/30 p-3 bg-meme-gray/30">
+                        <p className="text-neon-cyan mb-1">received</p>
+                        <p className="text-neon-green glow-green font-bold">{purchase.amountToken.toLocaleString()}</p>
                       </div>
-                      <div className="border border-cyber-muted p-3">
-                        <p className="text-cyber-muted mb-1">price</p>
+                      <div className="border border-neon-purple/30 p-3 bg-meme-gray/30">
+                        <p className="text-neon-cyan mb-1">price</p>
                         <p className="text-white">{purchase.pricePerToken.toFixed(8)}</p>
                       </div>
                     </div>
 
-                    <div className="pt-3 border-t border-cyber-muted">
-                      <p className="text-cyber-muted text-xs mb-2">// reasoning</p>
-                      <p className="text-sm text-cyber-light leading-relaxed line-clamp-2">
+                    <div className="pt-3 border-t border-neon-purple/30">
+                      <p className="text-neon-yellow text-xs mb-2">// why i aped 🧠</p>
+                      <p className="text-sm text-meme-light leading-relaxed line-clamp-2">
                         {purchase.reasoning}
                       </p>
                     </div>
@@ -138,9 +139,9 @@ export default function PortfolioPage() {
                       href={`https://solscan.io/tx/${purchase.txSignature}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block text-cyber-light text-xs hover:text-white transition-colors"
+                      className="inline-block text-neon-cyan text-xs hover:text-neon-green transition-colors hover:glow-green"
                     >
-                      [view tx]
+                      [view tx 🔗]
                     </a>
                   </div>
                 ))}

@@ -4,29 +4,29 @@ import { SignedIn, SignedOut, UserButton, SignInButton } from "@clerk/nextjs";
 
 export default function Home() {
   return (
-    <main className="min-h-screen p-4 relative">
+    <main className="min-h-screen p-4 relative chaos-bg">
       <div className="max-w-2xl mx-auto relative z-10">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="font-pixel text-xl md:text-2xl text-white glow-white">
+          <h1 className="font-pixel text-xl md:text-2xl text-neon-pink glow-pink">
             Vibe Trader
           </h1>
           <div className="flex items-center gap-4">
             <Link
               href="/leaderboard"
-              className="text-cyber-light hover:text-white transition-colors font-mono text-sm"
+              className="text-neon-cyan hover:text-neon-yellow transition-colors font-mono text-sm hover:glow-yellow"
             >
               [leaderboard]
             </Link>
             <Link
               href="/portfolio"
-              className="text-cyber-light hover:text-white transition-colors font-mono text-sm"
+              className="text-neon-cyan hover:text-neon-yellow transition-colors font-mono text-sm hover:glow-yellow"
             >
               [portfolio]
             </Link>
 
             <SignedOut>
               <SignInButton mode="modal">
-                <button className="text-cyber-light hover:text-white transition-colors font-mono text-sm">
+                <button className="text-neon-green hover:text-neon-yellow transition-colors font-mono text-sm hover:glow-green">
                   [sign in]
                 </button>
               </SignInButton>
@@ -36,7 +36,7 @@ export default function Home() {
               <UserButton
                 appearance={{
                   elements: {
-                    avatarBox: "w-8 h-8 border border-cyber-muted",
+                    avatarBox: "w-8 h-8 border-2 border-neon-pink shadow-glow-pink",
                   },
                 }}
               />

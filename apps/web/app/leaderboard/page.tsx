@@ -63,30 +63,30 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <main className="min-h-screen p-4 relative">
+    <main className="min-h-screen p-4 relative chaos-bg">
       <div className="max-w-5xl mx-auto relative z-10 font-mono">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="font-pixel text-xl md:text-2xl text-white glow-white">
-            Leaderboard
+          <h1 className="font-pixel text-xl md:text-2xl text-neon-yellow glow-yellow">
+            🏆 Leaderboard
           </h1>
           <Link
             href="/"
-            className="text-cyber-light hover:text-white transition-colors text-sm"
+            className="text-neon-pink hover:text-neon-cyan transition-colors text-sm hover:glow-cyan"
           >
             [back]
           </Link>
         </div>
 
         {loading && (
-          <div className="text-cyber-light animate-pulse">
-            $ loading leaderboard...
+          <div className="text-neon-cyan animate-pulse glow-cyan">
+            $ loading degens... 🔄
           </div>
         )}
 
         {error && (
-          <div className="border border-white p-4 mb-6">
-            <p className="text-white">ERROR: {error}</p>
+          <div className="border-2 border-neon-red p-4 mb-6 bg-neon-red/10">
+            <p className="text-neon-red">❌ ERROR: {error}</p>
           </div>
         )}
 
@@ -94,27 +94,27 @@ export default function LeaderboardPage() {
           <>
             {/* Global Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="border border-cyber-muted p-4 bg-black/50">
-                <p className="text-cyber-muted text-xs mb-1">// total_trades</p>
-                <p className="text-2xl font-bold text-white glow-white">
+              <div className="border-2 border-neon-pink/50 p-4 bg-meme-dark/80 box-glow-pink">
+                <p className="text-neon-pink text-xs mb-1">// total_apes</p>
+                <p className="text-2xl font-bold text-white glow-pink">
                   {data.globalStats.totalTrades.toLocaleString()}
                 </p>
               </div>
-              <div className="border border-cyber-muted p-4 bg-black/50">
-                <p className="text-cyber-muted text-xs mb-1">// traders</p>
-                <p className="text-2xl font-bold text-white glow-white">
+              <div className="border-2 border-neon-cyan/50 p-4 bg-meme-dark/80 box-glow-cyan">
+                <p className="text-neon-cyan text-xs mb-1">// degens</p>
+                <p className="text-2xl font-bold text-white glow-cyan">
                   {data.globalStats.totalUsersTraded.toLocaleString()}
                 </p>
               </div>
-              <div className="border border-cyber-muted p-4 bg-black/50">
-                <p className="text-cyber-muted text-xs mb-1">// win_rate</p>
-                <p className="text-2xl font-bold text-cyber-green glow-green">
+              <div className="border-2 border-neon-green/50 p-4 bg-meme-dark/80 box-glow-green">
+                <p className="text-neon-green text-xs mb-1">// win_rate</p>
+                <p className="text-2xl font-bold text-neon-green glow-green">
                   {data.globalStats.overallWinRate.toFixed(1)}%
                 </p>
               </div>
-              <div className="border border-cyber-muted p-4 bg-black/50">
-                <p className="text-cyber-muted text-xs mb-1">// volume_sol</p>
-                <p className="text-2xl font-bold text-white glow-white">
+              <div className="border-2 border-neon-yellow/50 p-4 bg-meme-dark/80">
+                <p className="text-neon-yellow text-xs mb-1">// volume_sol</p>
+                <p className="text-2xl font-bold text-neon-yellow glow-yellow">
                   {data.globalStats.totalVolumeSOL.toFixed(2)}
                 </p>
               </div>
@@ -123,16 +123,16 @@ export default function LeaderboardPage() {
             {/* Top Tokens */}
             {data.globalStats.topTokens.length > 0 && (
               <div className="mb-8">
-                <h2 className="font-pixel text-xs text-cyber-light mb-4">
-                  {">"} TOP_TOKENS
+                <h2 className="font-pixel text-xs text-neon-cyan mb-4 glow-cyan">
+                  {">"} HOT_TOKENS 🔥
                 </h2>
                 <div className="flex gap-2 flex-wrap">
                   {data.globalStats.topTokens.map((token, i) => (
                     <span
                       key={i}
-                      className="border border-cyber-muted px-3 py-1 text-xs text-cyber-light bg-black/50"
+                      className="border-2 border-neon-purple/50 px-3 py-1 text-xs text-neon-pink bg-meme-dark/80 hover:border-neon-pink transition-colors"
                     >
-                      {token.symbol} ({token.tradeCount})
+                      ${token.symbol} ({token.tradeCount})
                     </span>
                   ))}
                 </div>
@@ -145,27 +145,27 @@ export default function LeaderboardPage() {
                 <button
                   key={sort}
                   onClick={() => setSortBy(sort)}
-                  className={`px-4 py-2 text-xs border transition-colors ${
+                  className={`px-4 py-2 text-xs border-2 transition-colors ${
                     sortBy === sort
-                      ? "border-white text-white bg-white/10"
-                      : "border-cyber-muted text-cyber-light hover:border-white"
+                      ? "border-neon-pink text-neon-pink bg-neon-pink/20 glow-pink"
+                      : "border-meme-muted text-meme-light hover:border-neon-cyan hover:text-neon-cyan"
                   }`}
                 >
-                  {sort === "pnl" && "P&L"}
-                  {sort === "trades" && "Trades"}
-                  {sort === "winRate" && "Win Rate"}
+                  {sort === "pnl" && "💰 P&L"}
+                  {sort === "trades" && "📊 Trades"}
+                  {sort === "winRate" && "🎯 Win Rate"}
                 </button>
               ))}
             </div>
 
             {/* Leaderboard Table */}
-            <div className="border border-cyber-muted bg-black/50">
+            <div className="neon-border bg-meme-dark/80">
               {/* Header */}
-              <div className="grid grid-cols-6 gap-2 md:gap-4 p-4 border-b border-cyber-muted text-cyber-muted text-xs">
+              <div className="grid grid-cols-6 gap-2 md:gap-4 p-4 border-b border-neon-purple/30 text-neon-cyan text-xs">
                 <span>#</span>
-                <span>TRADER</span>
-                <span className="text-right">TRADES</span>
-                <span className="text-right hidden md:block">INVESTED</span>
+                <span>DEGEN</span>
+                <span className="text-right">APES</span>
+                <span className="text-right hidden md:block">YOLO&apos;D</span>
                 <span className="text-right">P&L</span>
                 <span className="text-right">WIN%</span>
               </div>
@@ -174,45 +174,48 @@ export default function LeaderboardPage() {
               {data.leaderboard.map((entry) => (
                 <div
                   key={entry.displayName}
-                  className="grid grid-cols-6 gap-2 md:gap-4 p-4 border-b border-cyber-muted/50 hover:bg-white/5 transition-colors text-sm"
+                  className="grid grid-cols-6 gap-2 md:gap-4 p-4 border-b border-neon-purple/20 hover:bg-neon-pink/10 transition-colors text-sm"
                 >
-                  <span className="text-white font-bold">
-                    {entry.rank}
+                  <span className="text-neon-yellow font-bold">
+                    {entry.rank === 1 && "🥇 "}
+                    {entry.rank === 2 && "🥈 "}
+                    {entry.rank === 3 && "🥉 "}
+                    {entry.rank > 3 && entry.rank}
                   </span>
-                  <span className="text-cyber-light truncate">
+                  <span className="text-neon-pink truncate">
                     {entry.displayName}
                   </span>
                   <span className="text-right text-white">
                     {entry.totalTrades}
                   </span>
-                  <span className="text-right text-white hidden md:block">
+                  <span className="text-right text-neon-cyan hidden md:block">
                     {entry.totalInvestedSol.toFixed(2)}
                   </span>
                   <span
                     className={`text-right font-bold ${
                       entry.totalPnlUsd >= 0
-                        ? "text-cyber-green glow-green"
-                        : "text-red-500"
+                        ? "text-neon-green glow-green"
+                        : "text-neon-red"
                     }`}
                   >
                     {formatPnL(entry.totalPnlUsd)}
                   </span>
-                  <span className="text-right text-cyber-light">
+                  <span className="text-right text-meme-light">
                     {entry.winRate.toFixed(1)}%
                   </span>
                 </div>
               ))}
 
               {data.leaderboard.length === 0 && (
-                <div className="text-center py-12 text-cyber-muted">
-                  <div className="text-2xl mb-4">[ empty ]</div>
-                  <p>no trades recorded yet</p>
+                <div className="text-center py-12 text-meme-light">
+                  <div className="text-4xl mb-4">🦧</div>
+                  <p className="text-neon-cyan">no degens yet... be the first!</p>
                 </div>
               )}
             </div>
 
             {/* Last Updated */}
-            <p className="text-cyber-muted text-xs mt-4 text-right">
+            <p className="text-meme-light text-xs mt-4 text-right">
               last updated: {new Date(data.lastUpdated).toLocaleString()}
             </p>
           </>

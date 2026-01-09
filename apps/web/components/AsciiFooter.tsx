@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 
 const ASCII_FRAMES = [
-  "[ * ]───────────────────────────────────────[ * ]",
-  "[ ─ ]───────────────────────────────────────[ ─ ]",
-  "[ * ]───────────────────────────────────────[ * ]",
-  "[ | ]───────────────────────────────────────[ | ]",
+  "🚀═══════════════════════════════════════🚀",
+  "💎═══════════════════════════════════════💎",
+  "🔥═══════════════════════════════════════🔥",
+  "💰═══════════════════════════════════════💰",
 ];
 
 export default function AsciiFooter() {
   const [frame, setFrame] = useState(0);
-  const [glitchText, setGlitchText] = useState("VIBE_TRADER_v0.1");
+  const [glitchText, setGlitchText] = useState("VIBE_TRADER // WAGMI");
 
   useEffect(() => {
     const frameInterval = setInterval(() => {
@@ -19,16 +19,16 @@ export default function AsciiFooter() {
     }, 500);
 
     const glitchInterval = setInterval(() => {
-      if (Math.random() > 0.9) {
-        const chars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
-        const text = "VIBE_TRADER_v0.1";
+      if (Math.random() > 0.85) {
+        const chars = "🚀💎🔥💰🦍🐸📈🌙⭐";
+        const text = "VIBE_TRADER // WAGMI";
         const pos = Math.floor(Math.random() * text.length);
         const glitched =
           text.slice(0, pos) +
           chars[Math.floor(Math.random() * chars.length)] +
           text.slice(pos + 1);
         setGlitchText(glitched);
-        setTimeout(() => setGlitchText("VIBE_TRADER_v0.1"), 100);
+        setTimeout(() => setGlitchText("VIBE_TRADER // WAGMI"), 150);
       }
     }, 200);
 
@@ -39,11 +39,11 @@ export default function AsciiFooter() {
   }, []);
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-10 bg-black/90 border-t border-cyber-muted font-mono text-xs text-cyber-muted py-2 px-4">
+    <footer className="fixed bottom-0 left-0 right-0 z-10 bg-meme-dark/95 border-t-2 border-neon-pink/50 font-mono text-xs py-2 px-4">
       <div className="max-w-4xl mx-auto flex items-center justify-between">
-        <span className="hidden sm:inline opacity-60">{ASCII_FRAMES[frame]}</span>
-        <span className="text-cyber-light">{glitchText}</span>
-        <span className="hidden sm:inline opacity-60">{ASCII_FRAMES[frame]}</span>
+        <span className="hidden sm:inline text-neon-cyan opacity-80">{ASCII_FRAMES[frame]}</span>
+        <span className="text-neon-pink glow-pink">{glitchText}</span>
+        <span className="hidden sm:inline text-neon-cyan opacity-80">{ASCII_FRAMES[frame]}</span>
       </div>
     </footer>
   );
