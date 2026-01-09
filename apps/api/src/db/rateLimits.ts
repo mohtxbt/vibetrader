@@ -13,8 +13,8 @@ export interface RateLimitInfo {
 }
 
 const LIMITS = {
-  user: 20,     // Logged-in users: 20/day
-  anonymous: 2, // Non-logged-in users: 2/day
+  user: Number(process.env.USER_DAILY_LIMIT) || 20,
+  anonymous: Number(process.env.ANON_DAILY_LIMIT) || 2,
 };
 
 export async function getRateLimitInfo(

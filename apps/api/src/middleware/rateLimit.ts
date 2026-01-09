@@ -41,8 +41,8 @@ export async function checkRateLimit(
       return res.status(429).json({
         error: "Rate limit exceeded",
         message: identifierType === "user"
-          ? "You have used all 20 interactions for today. Resets at midnight UTC."
-          : "You have used all 2 free interactions. Sign in for 20 interactions per day!",
+          ? `You have used all ${rateLimitInfo.limit} interactions for today. Resets at midnight UTC.`
+          : `You have used all ${rateLimitInfo.limit} free interactions. Sign in for more interactions per day!`,
         rateLimit: {
           limit: rateLimitInfo.limit,
           remaining: 0,

@@ -23,6 +23,12 @@ export default function Home() {
             >
               [portfolio]
             </Link>
+            <Link
+              href="/about"
+              className="text-neon-cyan hover:text-neon-yellow transition-colors font-mono text-sm hover:glow-yellow"
+            >
+              [about]
+            </Link>
 
             <SignedOut>
               <SignInButton mode="modal">
