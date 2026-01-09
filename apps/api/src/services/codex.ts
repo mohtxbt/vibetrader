@@ -162,8 +162,6 @@ export async function getTokenInfo(tokenAddress: string): Promise<TokenInfo | nu
       limit: 1,
     });
 
-    console.log("[Codex] Raw response:", JSON.stringify(result, null, 2));
-
     const tokens = result.filterTokens?.results || [];
     if (tokens.length === 0) {
       console.log("[Codex] No token data found");
