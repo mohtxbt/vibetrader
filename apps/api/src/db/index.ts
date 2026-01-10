@@ -165,3 +165,10 @@ export async function getPurchasesByToken(tokenAddress: string): Promise<Purchas
 
   return result.rows;
 }
+
+export async function updatePurchaseSymbol(purchaseId: string, symbol: string): Promise<void> {
+  await pool.query(
+    `UPDATE purchases SET token_symbol = $1 WHERE id = $2`,
+    [symbol, purchaseId]
+  );
+}

@@ -59,6 +59,18 @@ router.post("/", checkRateLimit, async (req, res) => {
           holders: tokenInfo.holders,
           age: formatAge(tokenInfo.pairCreatedAt),
         };
+
+        // Emit pitched event for WebSocket clients
+        eventBus.emitTokenEvent({
+          type: "pitched",
+          timestamp: Date.now(),
+          tokenAddress: tokenInfo.address,
+          symbol: tokenInfo.symbol,
+          name: tokenInfo.name,
+          priceUsd: tokenInfo.priceUsd,
+          marketCap: tokenInfo.marketCap,
+          liquidity: tokenInfo.liquidity,
+        });
       }
     }
 
@@ -79,10 +91,30 @@ router.post("/", checkRateLimit, async (req, res) => {
           BUY_AMOUNT_SOL
         );
 
+        // Fetch token info if we don't have tokenPreview (e.g., token address came from agent response)
+        let buyTokenInfo = tokenPreview;
+        if (!buyTokenInfo) {
+          const fetchedInfo = await getTokenInfo(swapResult.tokenAddress);
+          if (fetchedInfo) {
+            buyTokenInfo = {
+              address: fetchedInfo.address,
+              name: fetchedInfo.name,
+              symbol: fetchedInfo.symbol,
+              priceUsd: fetchedInfo.priceUsd,
+              liquidity: fetchedInfo.liquidity,
+              marketCap: fetchedInfo.marketCap,
+              volume24h: fetchedInfo.volume24h,
+              priceChange24h: fetchedInfo.priceChange24h,
+              holders: fetchedInfo.holders,
+              age: formatAge(fetchedInfo.pairCreatedAt),
+            };
+          }
+        }
+
         // Record the purchase with user info
         await addPurchase({
           tokenAddress: swapResult.tokenAddress,
-          tokenSymbol: "UNKNOWN", // Could fetch from token metadata
+          tokenSymbol: buyTokenInfo?.symbol || "UNKNOWN",
           amountSol: swapResult.inputAmount,
           amountToken: swapResult.outputAmount,
           pricePerToken: swapResult.inputAmount / swapResult.outputAmount,
@@ -91,6 +123,21 @@ router.post("/", checkRateLimit, async (req, res) => {
           timestamp: new Date().toISOString(),
           userId: req.userIdentifier,
           userType: req.identifierType === "user" ? "user" : "ip",
+        });
+
+        // Emit bought event for WebSocket clients
+        eventBus.emitTokenEvent({
+          type: "bought",
+          timestamp: Date.now(),
+          tokenAddress: swapResult.tokenAddress,
+          symbol: buyTokenInfo?.symbol || "UNKNOWN",
+          name: buyTokenInfo?.name || "Unknown Token",
+          priceUsd: buyTokenInfo?.priceUsd || "0",
+          marketCap: buyTokenInfo?.marketCap || null,
+          liquidity: buyTokenInfo?.liquidity || 0,
+          amountSol: swapResult.inputAmount,
+          amountToken: swapResult.outputAmount,
+          txSignature: swapResult.signature,
         });
 
         response.decision = {
@@ -104,6 +151,21 @@ router.post("/", checkRateLimit, async (req, res) => {
         response.message += "\n\n(Note: I wanted to buy but the swap failed. Make sure the wallet has SOL!)";
       }
     } else if (agentResponse.decision?.action === "pass") {
+      // Emit rejected event for WebSocket clients
+      if (tokenAddress && tokenPreview) {
+        eventBus.emitTokenEvent({
+          type: "rejected",
+          timestamp: Date.now(),
+          tokenAddress: tokenAddress,
+          symbol: tokenPreview.symbol,
+          name: tokenPreview.name,
+          priceUsd: tokenPreview.priceUsd,
+          marketCap: tokenPreview.marketCap,
+          liquidity: tokenPreview.liquidity,
+          reason: agentResponse.decision.reasoning.slice(0, 200),
+        });
+      }
+
       response.decision = {
         action: "pass",
         reasoning: agentResponse.decision.reasoning,
@@ -180,9 +242,29 @@ router.post("/stream", checkRateLimit, async (req, res) => {
       try {
         const swapResult = await executeSwap(decision.tokenAddress, BUY_AMOUNT_SOL);
 
+        // Fetch token info if we don't have tokenPreview (e.g., token address came from agent response)
+        let buyTokenInfo = tokenPreview;
+        if (!buyTokenInfo) {
+          const fetchedInfo = await getTokenInfo(swapResult.tokenAddress);
+          if (fetchedInfo) {
+            buyTokenInfo = {
+              address: fetchedInfo.address,
+              name: fetchedInfo.name,
+              symbol: fetchedInfo.symbol,
+              priceUsd: fetchedInfo.priceUsd,
+              liquidity: fetchedInfo.liquidity,
+              marketCap: fetchedInfo.marketCap,
+              volume24h: fetchedInfo.volume24h,
+              priceChange24h: fetchedInfo.priceChange24h,
+              holders: fetchedInfo.holders,
+              age: formatAge(fetchedInfo.pairCreatedAt),
+            };
+          }
+        }
+
         await addPurchase({
           tokenAddress: swapResult.tokenAddress,
-          tokenSymbol: tokenPreview?.symbol || "UNKNOWN",
+          tokenSymbol: buyTokenInfo?.symbol || "UNKNOWN",
           amountSol: swapResult.inputAmount,
           amountToken: swapResult.outputAmount,
           pricePerToken: swapResult.inputAmount / swapResult.outputAmount,
@@ -198,11 +280,11 @@ router.post("/stream", checkRateLimit, async (req, res) => {
           type: "bought",
           timestamp: Date.now(),
           tokenAddress: swapResult.tokenAddress,
-          symbol: tokenPreview?.symbol || "UNKNOWN",
-          name: tokenPreview?.name || "Unknown Token",
-          priceUsd: tokenPreview?.priceUsd || "0",
-          marketCap: tokenPreview?.marketCap || null,
-          liquidity: tokenPreview?.liquidity || 0,
+          symbol: buyTokenInfo?.symbol || "UNKNOWN",
+          name: buyTokenInfo?.name || "Unknown Token",
+          priceUsd: buyTokenInfo?.priceUsd || "0",
+          marketCap: buyTokenInfo?.marketCap || null,
+          liquidity: buyTokenInfo?.liquidity || 0,
           amountSol: swapResult.inputAmount,
           amountToken: swapResult.outputAmount,
           txSignature: swapResult.signature,

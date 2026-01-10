@@ -1,6 +1,7 @@
 import { pool } from "./index.js";
 import { randomUUID } from "crypto";
 import type { LeaderboardEntry, GlobalStats, TopToken } from "@vibe-trader/shared";
+import { getTokenInfo } from "../services/codex.js";
 
 // Mask user identifiers for privacy
 function maskUserId(userId: string, userType: string): string {
@@ -50,12 +51,35 @@ export async function getGlobalStats(): Promise<GlobalStats> {
     FROM leaderboard_cache
   `);
 
-  const topTokens: TopToken[] = topTokensResult.rows.map((row) => ({
-    address: row.token_address,
-    symbol: row.token_symbol || "UNKNOWN",
-    tradeCount: parseInt(row.trade_count),
-    avgPnlPercent: 0,
-  }));
+  // Enrich tokens with UNKNOWN symbol by fetching from Codex
+  const topTokens: TopToken[] = await Promise.all(
+    topTokensResult.rows.map(async (row) => {
+      let symbol = row.token_symbol;
+
+      if (!symbol || symbol === "UNKNOWN") {
+        try {
+          const tokenInfo = await getTokenInfo(row.token_address);
+          if (tokenInfo && tokenInfo.symbol && tokenInfo.symbol !== "???") {
+            symbol = tokenInfo.symbol;
+            // Update all purchases with this token address to have the correct symbol
+            await pool.query(
+              `UPDATE purchases SET token_symbol = $1 WHERE token_address = $2 AND (token_symbol IS NULL OR token_symbol = 'UNKNOWN')`,
+              [symbol, row.token_address]
+            );
+          }
+        } catch (error) {
+          console.error(`Failed to fetch token info for ${row.token_address}:`, error);
+        }
+      }
+
+      return {
+        address: row.token_address,
+        symbol: symbol || "UNKNOWN",
+        tradeCount: parseInt(row.trade_count),
+        avgPnlPercent: 0,
+      };
+    })
+  );
 
   return {
     totalTrades: parseInt(stats.total_trades) || 0,
