@@ -4,6 +4,7 @@ import "./globals.css";
 import PixelBackground from "@/components/PixelBackground";
 import TokenEventBackground from "@/components/TokenEventBackground";
 import AsciiFooter from "@/components/AsciiFooter";
+import DevTools from "@/components/DevTools";
 
 export const metadata: Metadata = {
   title: "Vibe Trader",
@@ -58,6 +59,7 @@ export default function RootLayout({
           <TokenEventBackground />
           {children}
           <AsciiFooter />
+          <DevTools />
         </body>
       </html>
     </ClerkProvider>
