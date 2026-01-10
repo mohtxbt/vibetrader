@@ -148,17 +148,21 @@ export interface AgentResponse {
 function parseDecision(content: string): AgentResponse["decision"] | undefined {
   const lines = content.split("\n");
   for (const line of lines) {
-    const trimmed = line.trim().toUpperCase();
-    if (trimmed.startsWith("DECISION:")) {
-      const decisionPart = trimmed.replace("DECISION:", "").trim();
-      if (decisionPart.startsWith("BUY")) {
-        const tokenAddress = decisionPart.replace("BUY", "").trim();
+    const trimmed = line.trim();
+    const upperTrimmed = trimmed.toUpperCase();
+    if (upperTrimmed.startsWith("DECISION:")) {
+      // Extract the part after "DECISION:" from original (preserves case for addresses)
+      const decisionPart = trimmed.slice("DECISION:".length).trim();
+      const upperDecisionPart = decisionPart.toUpperCase();
+      if (upperDecisionPart.startsWith("BUY")) {
+        // Extract token address from original, preserving case
+        const tokenAddress = decisionPart.slice("BUY".length).trim();
         return {
           action: "buy",
           tokenAddress: tokenAddress || undefined,
           reasoning: content,
         };
-      } else if (decisionPart === "PASS") {
+      } else if (upperDecisionPart === "PASS") {
         return {
           action: "pass",
           reasoning: content,
