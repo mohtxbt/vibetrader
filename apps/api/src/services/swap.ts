@@ -45,6 +45,13 @@ export async function getOrder(
   const wallet = getWallet();
   const amountLamports = Math.floor(amountSol * LAMPORTS_PER_SOL);
 
+  console.log("[swap] getOrder called with:", {
+    outputMint,
+    outputMintLength: outputMint?.length,
+    amountSol,
+    amountLamports,
+  });
+
   const params = new URLSearchParams({
     inputMint: SOL_MINT,
     outputMint,
@@ -52,7 +59,10 @@ export async function getOrder(
     taker: wallet.publicKey.toBase58(),
   });
 
-  const response = await fetch(`${JUPITER_ULTRA_API}/order?${params}`, {
+  const url = `${JUPITER_ULTRA_API}/order?${params}`;
+  console.log("[swap] Requesting order from:", url);
+
+  const response = await fetch(url, {
     headers: {
       "x-api-key": getJupiterApiKey(),
     },
@@ -60,6 +70,12 @@ export async function getOrder(
 
   if (!response.ok) {
     const errorText = await response.text();
+    console.error("[swap] Order request failed:", {
+      status: response.status,
+      statusText: response.statusText,
+      errorText,
+      outputMint,
+    });
     throw new Error(`Failed to get order: ${response.statusText} - ${errorText}`);
   }
 
@@ -85,10 +101,18 @@ export async function executeSwap(
   outputMint: string,
   amountSol: number
 ): Promise<SwapResult> {
+  console.log("[swap] executeSwap called with:", { outputMint, amountSol });
+
   const wallet = getWallet();
 
   // Get order with transaction
   const order = await getOrder(outputMint, amountSol);
+  console.log("[swap] Order received:", {
+    requestId: order.requestId,
+    inAmount: order.inAmount,
+    outAmount: order.outAmount,
+    swapType: order.swapType,
+  });
 
   // Deserialize and sign transaction
   const transactionBuffer = Buffer.from(order.transaction, "base64");
