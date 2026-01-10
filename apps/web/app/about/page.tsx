@@ -28,7 +28,7 @@ export default function AboutPage() {
               <span className="text-neon-yellow">Vibe Trader</span> is a
               human-AI open source trading experimental agent that trades Solana tokens.
               Have a conversation with an AI agent that can execute real trades
-              based on your discussion. The agent SOL is funded by the Bags Fees.
+              based on your discussion. The agent is funded by the Creator Fees.
             </p>
           </section>
 
