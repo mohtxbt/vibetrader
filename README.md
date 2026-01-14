@@ -51,3 +51,9 @@ packages/
 - The agent will generate a new wallet on startup if you don't provide one. Check the logs for the private key.
 - Test on devnet first unless you want to lose money.
 - The agent is skeptical by default. You actually have to make a decent pitch.
+
+## Contract
+
+pump
+
+

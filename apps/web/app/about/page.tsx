@@ -120,7 +120,7 @@ export default function AboutPage() {
             </h2>
             <div className="flex flex-wrap gap-4">
               <a
-                href="https://github.com/mohtxbt/vibe-trader"
+                href="https://github.com/mohtxbt/vibetrader"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-neon-cyan hover:text-neon-yellow transition-colors hover:glow-yellow"

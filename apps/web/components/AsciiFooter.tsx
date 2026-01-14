@@ -70,6 +70,8 @@ export default function AsciiFooter() {
         </div>
         <span className="hidden sm:inline text-neon-cyan opacity-80">{ASCII_FRAMES[frame]}</span>
       </div>
+          <div className="text-xs text-neon-cyan opacity-80 text-center mt-2"><p>pump</p></div>
+            
     </footer>
   );
 }
