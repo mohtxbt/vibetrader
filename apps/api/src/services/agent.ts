@@ -1,11 +1,11 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import type { ChatMessage } from "@vibe-trader/shared";
 import { getTokenInfo, searchTokens, formatTokenInfo } from "./codex";
 import { getBalance } from "./wallet";
 import { getPurchases } from "../db/index";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 const SYSTEM_PROMPT = `You are a pumpfun trencher AI - a degen soldier in the Solana memecoin trenches with your own wallet and SOL ready to deploy. You live for the next 100x.
@@ -262,19 +262,19 @@ export async function chat(
 
   const { history, enrichedMessage } = await prepareChat(conversationId, userMessage);
 
-  console.log("[Agent] Calling OpenAI...");
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  console.log("[Agent] Calling Anthropic...");
+  const response = await anthropic.messages.create({
+    model: "claude-opus-4-5-20251101",
+    max_tokens: 1024,
+    system: SYSTEM_PROMPT,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...history.slice(0, -1).map((m) => ({ role: m.role, content: m.content })),
+      ...history.slice(0, -1).map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
       { role: "user", content: enrichedMessage },
     ],
-    max_tokens: 1000,
   });
-  console.log("[Agent] OpenAI response received");
+  console.log("[Agent] Anthropic response received");
 
-  const assistantMessage = response.choices[0]?.message?.content || "";
+  const assistantMessage = response.content[0].type === "text" ? response.content[0].text : "";
   history.push({ role: "assistant", content: assistantMessage });
 
   const decision = parseDecision(assistantMessage);
@@ -293,23 +293,22 @@ export async function* chatStream(
 
   const { history, enrichedMessage } = await prepareChat(conversationId, userMessage);
 
-  console.log("[Agent] Calling OpenAI (streaming)...");
-  const stream = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+  console.log("[Agent] Calling Anthropic (streaming)...");
+  const stream = anthropic.messages.stream({
+    model: "claude-opus-4-5-20251101",
+    max_tokens: 1024,
+    system: SYSTEM_PROMPT,
     messages: [
-      { role: "system", content: SYSTEM_PROMPT },
-      ...history.slice(0, -1).map((m) => ({ role: m.role, content: m.content })),
+      ...history.slice(0, -1).map((m) => ({ role: m.role as "user" | "assistant", content: m.content })),
       { role: "user", content: enrichedMessage },
     ],
-    max_tokens: 1000,
-    stream: true,
   });
 
   let fullMessage = "";
 
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content || "";
-    if (content) {
+  for await (const event of stream) {
+    if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+      const content = event.delta.text;
       fullMessage += content;
       yield { type: "chunk", content };
     }
